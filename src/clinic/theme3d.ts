@@ -71,7 +71,7 @@ export const PLAYER_RADIUS = 0.32
  * the only way this much equipment relates to itself across that much floor.
  * The fix was never the arrangement.
  *
- * 23 m² is still generous for an operatory, which is deliberate — this room also
+ * 36 m² is well above a real operatory, which is deliberate — this room also
  * carries the study desk and has to be walkable in first person.
  */
 export const ROOM_HALF = 3.0

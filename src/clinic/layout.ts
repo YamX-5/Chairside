@@ -890,7 +890,7 @@ export function nearestSeat(x: number, z: number, radius = 1.1): Seat | null {
  *
  * It used to be `{ x: 2.0, z: 3.9 }` — a raw coordinate from the CC0 kit
  * (kit x1 x SCALE 2, kit z H x SCALE 2, inset 0.1) belonging to the original
- * 8 x 8 m room. ROOM_HALF is 2.4, so z 3.9 is a metre and a half OUTSIDE the
+ * 8 x 8 m room. ROOM_HALF was 2.4 at the time, so z 3.9 was a metre and a half OUTSIDE the
  * building. `PatientRig` builds her walk from this, so she spawned in the car
  * park, was depth-occluded by the near wall for the first second and a half,
  * then materialised out of the plaster mid-stride. The tested copy — the
