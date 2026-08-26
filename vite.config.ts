@@ -104,6 +104,15 @@ function devFileDrop(): Plugin {
 }
 
 export default defineConfig({
+  /**
+   * GitHub Pages serves this repo from /Chairside/, not the domain root, so
+   * every asset URL needs that prefix or the entire build 404s on the phone.
+   *
+   * Set by the deploy workflow through BASE_PATH. Local dev and local builds
+   * stay at '/', so nothing about working on the game changes.
+   */
+  base: process.env.BASE_PATH ?? '/',
+
   plugins: [
     devFileDrop(),
     react(),
@@ -121,7 +130,8 @@ export default defineConfig({
         background_color: '#0b1220',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: process.env.BASE_PATH ?? '/',
+        scope: process.env.BASE_PATH ?? '/',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
