@@ -54,8 +54,15 @@ export const PROP_SCALES: PropScale[] = [
   },
   {
     id: 'doctors_chair',
-    longest: 0.85,
-    because: 'you sit on it and push off the floor — a saddle stool tops out just below hip height standing',
+    longest: 0.54,
+    because:
+      'the seat, not a guess at the silhouette: this asset has no backrest, so its ' +
+      'tallest point IS the cushion top (Object_leather black_0 ends the bbox), and ' +
+      'scaling the bbox sets the seat height directly. 0.54 m comes from the work ' +
+      'itself — a supine patient\'s mouth sits near 0.77 m and a seated operator\'s ' +
+      'elbow is ~0.23 m above the seat, and you treat at elbow height. It was 0.85, ' +
+      'which put the cushion at hip height while SEATS.stool sat the eye at 1.18 — ' +
+      'the player rendered inside the stool',
   },
   {
     id: 'sterilization_centre',

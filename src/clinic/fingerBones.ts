@@ -61,6 +61,10 @@ export function parseFingerBone(name: string): FingerJoint | null {
  *
  * The bare-letter forms have to be matched as whole tokens. "f_ring.01.R" is a
  * RIGHT ring finger, and a looser pattern reads the "r" of "ring" instead.
+ *
+ * The digit-adjacent forms are not hypothetical. three's GLTFLoader strips the
+ * characters [].:/ from every node name, so "f_ring.01.L_041" reaches the scene
+ * as "f_ring01L_041" and the side letter loses the separator in front of it.
  */
 export function boneSide(name: string): 'L' | 'R' | null {
   const lower = name.toLowerCase()
@@ -68,6 +72,10 @@ export function boneSide(name: string): 'L' | 'R' | null {
   if (lower.includes('left')) return 'L'
   if (/[._-]r(?:[._-]|$)/.test(lower)) return 'R'
   if (/[._-]l(?:[._-]|$)/.test(lower)) return 'L'
+  // After sanitising, the side letter sits between the segment number and the
+  // exporter's suffix: "01r_02".
+  if (/\dr(?:[._-]|\d|$)/.test(lower)) return 'R'
+  if (/\dl(?:[._-]|\d|$)/.test(lower)) return 'L'
   return null
 }
 

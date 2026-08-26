@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Bone, Group, Mesh, MeshStandardMaterial, Object3D, Quaternion, Vector3 } from 'three'
+import { Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three'
 import { SkeletonUtils } from 'three-stdlib'
 import { C } from './theme3d'
-import { boneSide, parseFingerBone } from './fingerBones'
+import { collectJoints, isCuff, isPair, placeHand } from './handsRig'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { moveInput } from './input'
 
@@ -29,11 +29,16 @@ import { moveInput } from './input'
  * in multiplayer other players can see whether you gloved up.
  *
  * ONE HAND OR TWO is detected, not assumed. Most hand assets ship a single hand
- * meant to be mirrored; some ship a pair. Mirroring a pair would give you four
- * hands, so boneSide decides. The mirrored copy sits under a group scaled -1 on
- * X rather than being scaled itself, so the placement mirrors with it and the
- * two hands are guaranteed symmetric. three.js flips winding order for a
- * negative-determinant matrix on its own, so the mirrored hand lights correctly.
+ * meant to be mirrored; some ship a pair. Mirroring a pair would give four
+ * hands. The mirrored copy sits under a group scaled -1 on X rather than being
+ * scaled itself, so the placement mirrors with it and the two stay symmetric.
+ * three.js flips winding order for a negative-determinant matrix on its own, so
+ * the mirrored hand lights correctly.
+ *
+ * PLACEMENT IS ABOUT THE WRIST, and the offset from the rig's root to its wrist
+ * is read from the model rather than typed. This asset's root sits 152 mm from
+ * its own wrist, so an earlier version that positioned the ROOT at x = 0.13 put
+ * the wrist at 0.52 — the two hands a full metre apart, outside the frustum.
  */
 
 const BASE = import.meta.env.BASE_URL
@@ -43,115 +48,10 @@ const BASE = import.meta.env.BASE_URL
  *
  * MEASURED, NOT ASSUMED. scripts/bl_hands_glove.py poses the fingers about each
  * axis in turn and keeps whichever actually folds the fingertips toward the
- * wrist, then prints the answer. Assuming an axis is how the cabinet doors ended
- * up swinging through a wall.
+ * wrist, then prints the answer. It is Z- for this asset. Assuming an axis is
+ * how the cabinet doors ended up swinging through a wall.
  */
 const CURL_AXIS = new Vector3(0, 0, -1)
-
-/**
- * Adult hand length, wrist to the tip of the middle finger. 50th-percentile male
- * is 189 mm and female 172 mm; 185 mm reads as an adult without being either.
- */
-const HAND_LENGTH = 0.185
-
-/** Where one hand sits relative to the camera, and how it is turned. */
-const HAND_POSITION: [number, number, number] = [0.13, -0.17, -0.3]
-const HAND_ROTATION: [number, number, number] = [-1.15, 0.12, 0]
-
-/**
- * Measure the loaded hand and scale it to a real one, rather than trusting the
- * file to arrive at the right size.
- *
- * The Blender build sizes the model correctly and still exports it wrong: the
- * skinned mesh is not parented to the armature, so the glTF exporter drops the
- * armature's object scale from the joint nodes and warns about it. Blender said
- * 185 mm, the glb measured 72 mm.
- *
- * Normalising here rather than chasing the exporter means the game is correct
- * for whatever the file happens to contain, and swapping the hand asset needs no
- * re-tuning. Measured off the BONES, so it does not depend on the pose the
- * artist saved — a curled hand has a smaller bounding box than the same hand at
- * rest, which is exactly how the 299 mm version got shipped.
- */
-function measureHand(root: Object3D): number | null {
-  // <primitive> transforms only fold into matrixWorld during render, so nothing
-  // below is meaningful until the matrices are current.
-  root.updateWorldMatrix(true, true)
-
-  let wrist: Object3D | null = null
-  let distal: Object3D | null = null
-  let tip: Object3D | null = null
-  root.traverse((o) => {
-    if (!(o as Bone).isBone) return
-    if (!wrist && /^(hand|wrist)/i.test(o.name)) wrist = o
-    if (o.name.startsWith('f_middle.03') || /middlefinger?3/i.test(o.name)) {
-      // The distal bone's origin is the base of the last segment; its "_end"
-      // child is the actual fingertip, and skipping it loses ~25 mm.
-      if (o.name.includes('_end')) tip = o
-      else distal = o
-    }
-  })
-  const far = tip ?? distal
-  if (!wrist || !far) return null
-
-  const a = new Vector3()
-  const b = new Vector3()
-  ;(wrist as Object3D).getWorldPosition(a)
-  ;(far as Object3D).getWorldPosition(b)
-  const d = a.distanceTo(b)
-  return d > 1e-6 ? d : null
-}
-
-/**
- * How far each joint of a finger closes when you grip, as a fraction of a full
- * fist. The knuckle leads and the tip follows — a hand that bends all three
- * equally looks like a claw.
- */
-const CURL: Record<number, number> = { 1: 0.52, 2: 0.72, 3: 0.58 }
-
-/** The thumb closes across the palm, not into it, so it curls less. */
-const THUMB_SCALE = 0.45
-
-interface Joint {
-  bone: Bone
-  rest: Quaternion
-  /** 0 index … 3 pinky, 4 thumb — drives the per-finger phase offset. */
-  finger: number
-  /** How much of a full fist this joint contributes. */
-  curl: number
-}
-
-function collectJoints(root: Object3D): Joint[] {
-  const joints: Joint[] = []
-  root.traverse((o) => {
-    if (!(o as Bone).isBone) return
-    const parsed = parseFingerBone(o.name)
-    if (!parsed) return
-    const curl = CURL[parsed.segment]
-    if (curl === undefined) return
-    joints.push({
-      bone: o as Bone,
-      rest: o.quaternion.clone(),
-      finger: parsed.finger,
-      curl: parsed.finger === 4 ? curl * THUMB_SCALE : curl,
-    })
-  })
-  return joints
-}
-
-/** True when the asset already contains both hands and must not be mirrored. */
-function isPair(root: Object3D): boolean {
-  const sides = new Set<string>()
-  root.traverse((o) => {
-    if (!(o as Bone).isBone || !parseFingerBone(o.name)) return
-    const side = boneSide(o.name)
-    if (side) sides.add(side)
-  })
-  return sides.size > 1
-}
-
-/** The rolled bead at the wrist, built as its own object by the Blender script. */
-const isCuff = (o: Object3D) => o.name.toLowerCase().startsWith('cuff')
 
 export function Hands({
   gloved = true,
@@ -176,24 +76,15 @@ export function Hands({
     if (!gltf) return null
     const first = SkeletonUtils.clone(gltf.scene) as Object3D
     const pair = isPair(first)
-    const measured = measureHand(first)
     return {
       first,
       // A second, independently skinned copy for the other hand. Cloning the
       // first would share its skeleton and both hands would pose as one.
       second: pair ? null : (SkeletonUtils.clone(gltf.scene) as Object3D),
-      /** Whatever the file shipped at, scaled to a real hand. */
-      scale: measured ? HAND_LENGTH / measured : 1,
-      measured,
+      // Scale, aim and position, all read off the model — see placeHand.
+      ...placeHand(first),
     }
   }, [gltf])
-
-  useEffect(() => {
-    if (!rig) return
-    if (rig.measured === null) {
-      console.warn('[Hands] could not measure the hand; shipping it unscaled')
-    }
-  }, [rig])
 
   const joints = useMemo(() => {
     if (!rig) return []
@@ -201,6 +92,13 @@ export function Hands({
       ...collectJoints(rig.first),
       ...(rig.second ? collectJoints(rig.second) : []),
     ]
+  }, [rig])
+
+  useEffect(() => {
+    if (rig && rig.measured === null) {
+      // Not fatal, but the hands will be whatever size the file happened to be.
+      console.warn('[Hands] no wrist or fingertip found; shipping unscaled')
+    }
   }, [rig])
 
   // Gloved or bare, decided here rather than trusting whatever the asset shipped
@@ -265,11 +163,12 @@ export function Hands({
     bob.current += delta * (moving ? 9 : 1.6)
     const amp = moving ? 0.02 : 0.006
 
-    // --- the hands as a whole, riding the camera --------------------------
+    // The group rides the camera exactly. Everything about where the hands sit
+    // lives in WRIST_TARGET, so there is one place to change it — an earlier
+    // version also translated the group and the two offsets silently summed.
     g.position.copy(state.camera.position)
     g.quaternion.copy(state.camera.quaternion)
-    g.translateY(-0.30 + Math.sin(bob.current) * amp)
-    g.translateZ(-0.30)
+    g.translateY(Math.sin(bob.current) * amp)
     g.rotateZ(Math.sin(bob.current * 0.5) * (moving ? 0.03 : 0.01))
 
     // --- pose blending -----------------------------------------------------
@@ -301,8 +200,8 @@ export function Hands({
     <group ref={group}>
       <primitive
         object={rig.first}
-        position={HAND_POSITION}
-        rotation={HAND_ROTATION}
+        position={rig.position}
+        quaternion={rig.quaternion}
         scale={rig.scale}
       />
       {rig.second && (
@@ -311,8 +210,8 @@ export function Hands({
         <group scale={[-1, 1, 1]}>
           <primitive
             object={rig.second}
-            position={HAND_POSITION}
-            rotation={HAND_ROTATION}
+            position={rig.position}
+            quaternion={rig.quaternion}
             scale={rig.scale}
           />
         </group>

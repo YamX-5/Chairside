@@ -821,7 +821,11 @@ export const SEATS: Seat[] = [
     approach: { x: CHAIR_POS[0] - 1.0, z: CHAIR_POS[2] - 0.05 },
     // Beside the chair, turned toward the patient — who is at +X from here, so
     // forward.x must be positive, which needs sin(yaw) < 0.
-    eye: { x: CHAIR_POS[0] - 0.72, y: 1.18, z: CHAIR_POS[2] - 0.05 },
+    // Seat 0.54 (see PROP_SCALES.doctors_chair) plus 0.77 sitting eye height —
+    // 50th-percentile adult, eye above the seat surface. These two numbers must
+    // move together: the eye was 1.18 against a cushion rendered at 0.85, so the
+    // camera sat 310 mm below the seat it was supposed to be on.
+    eye: { x: CHAIR_POS[0] - 0.72, y: 1.31, z: CHAIR_POS[2] - 0.05 },
     yaw: -Math.PI / 2,
   },
 ]

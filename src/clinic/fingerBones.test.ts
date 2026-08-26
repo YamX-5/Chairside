@@ -70,6 +70,18 @@ check('reads which hand a bone belongs to', () => {
   assert.equal(boneSide('hand_l'), 'L')
 })
 
+// three's GLTFLoader strips [].:/ from node names, so nothing that reaches the
+// scene has the dots the file was authored with. Every case above, sanitised.
+check('reads names as three delivers them, with the dots stripped', () => {
+  assert.deepEqual(parseFingerBone('f_index01R_027'), { finger: 0, segment: 1 })
+  assert.deepEqual(parseFingerBone('f_middle03R_011'), { finger: 1, segment: 3 })
+  assert.deepEqual(parseFingerBone('thumb01L_048'), { finger: 4, segment: 1 })
+  assert.equal(parseFingerBone('f_index03R_end_057'), null)
+  assert.equal(parseFingerBone('palm_indexR_026'), null)
+  assert.equal(boneSide('f_index01R_027'), 'R')
+  assert.equal(boneSide('f_ring01L_041'), 'L')
+})
+
 // "ring" starts with an r; a loose pattern calls every ring finger right-handed.
 check('does not read the r of "ring" as the right hand', () => {
   assert.equal(boneSide('f_ring.01.L_041'), 'L')
