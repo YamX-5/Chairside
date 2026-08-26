@@ -29,3 +29,17 @@ reference
 *.njsproj
 *.sln
 *.sw?
+
+# Blender working file for the hands pipeline. It saves the whole operatory
+# alongside the imported model — 124 MB, past GitHub's 100 MB hard limit, and the
+# push would be rejected. The build is reproducible from scripts/bl_hands_glove.py
+# plus the Sketchfab uid recorded in LICENSES.md, so this is a local convenience
+# rather than source.
+blender/hands.blend*
+
+# Sketchfab search thumbnails, pulled only to compare candidates by eye.
+blender/thumbs/
+
+# Scratch markers written by the Blender socket bridge.
+blender/.before
+blender/.audition

@@ -9,6 +9,17 @@ Anything not listed here is authored in `scripts/` and owned by the project.
 |---|---|---|---|---|
 | `BarberShopChair_01` | Poly Haven | CC0 1.0 | No | evaluation only — not shipped |
 | Mixamo "Beta" character + Idle / Walking / StandToSit / SittingIdle / SitToStand | Mixamo (Adobe) | Mixamo licence — royalty-free for commercial use with an Adobe account | No | **SHIPPED** as `public/models/patient.glb` |
+| ["Hand Low-Poly Stylized VR (Rigged)"](https://sketchfab.com/3d-models/hand-low-poly-stylized-vr-rigged-b6983bea654f4a8c80630a75f78874fe) by OKacin Creative (@OKacin) | Sketchfab | CC BY 4.0 | **Yes — must credit "OKacin Creative"** | **SHIPPED** as `public/models/hands.glb`, recoloured to nitrile blue with an authored cuff by `scripts/bl_hands_glove.py` |
+
+### Rejected, and why — so they are not re-evaluated
+
+| Asset | Reason |
+|---|---|
+| "First Person hands rigged" (547a4553) | Stick forearms on sausage biceps. Also shipped 28 elbow verts bound to finger bones and 116 faces bridging the wrists. |
+| "Free Pack — VR Hands (Rigged)" (b3b8309e) | Crashes Blender 5.2's glTF importer — reports success, then takes the process down. |
+| "FREE [FPS Arms] GameReady" (296d30fc) | Tactical fingerless gloves modelled in. Wrong for a clinic. |
+| Every "surgical glove" on Sketchfab | Static props with no armature. There is no rigged medical glove; ours is authored. |
+| Anything CC BY-NC or BY-SA | NonCommercial and ShareAlike both bite at commercial release. |
 
 ## Authored in-repo
 

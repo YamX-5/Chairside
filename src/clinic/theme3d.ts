@@ -38,7 +38,12 @@ export const C = {
   white: 0xfbf8f4,
   metal: 0xcfd4d8,
   skin: 0xd9a276,
-  glove: 0x6f9fe0, // blue nitrile — the reference clip is a gloved hand
+  // Medical nitrile exam blue. Deeper and slightly violet next to the old
+  // periwinkle, which read as a costume glove rather than a clinical one — and
+  // it has to hold up close, because in multiplayer other people see your hands.
+  glove: 0x4f83c8,
+  /** The rolled bead at the wrist, darker than the glove it sits on. */
+  gloveCuff: 0x3d68a8,
   window: 0xfff6e2,
   cork: 0xd9b98c,
   star: 0xf5c249,
