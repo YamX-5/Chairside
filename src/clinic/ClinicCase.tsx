@@ -449,7 +449,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
         {/* Your own hands. Written months ago and mounted only by
             ClinicExperience — never by this screen, which is the one the game
             runs in, so the player has been a floating camera the whole time. */}
-        {!studying && !reading && <Hands gloved={gloved} />}
+        {!studying && !reading && <Hands gloved={gloved} holding={!!heldId} reaching={near !== null} />}
 
         {/* No patient during the morning. The clinic opening is the whole point
             of the study step — she has to be genuinely absent before it. */}
