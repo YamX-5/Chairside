@@ -1,46 +1,59 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
-import { Box3, Group, Object3D, Vector3 } from 'three'
+import { Box3, Group, Matrix4, Object3D, Quaternion, Vector3 } from 'three'
 import { OPENABLES, openableId, type Openable } from './layout'
 
 /**
  * Makes the parts of a prop that should move, move: drawers slide, doors swing.
  *
- * HOW IT WORKS, AND WHY IT LOOKS LIKE THIS
- * ----------------------------------------
- * Props ship as one .glb each. The parts that open are ordinary meshes inside
- * them with stable names — see OPENABLES in layout.ts for which parts, and why
- * only those.
+ * WHY THE PIVOT IS BUILT FROM THE PROP ROOT AND NOT THE LEAF'S PARENT
+ * ------------------------------------------------------------------
+ * Both props are Sketchfab exports of Z-up models, so every leaf hangs under
+ * glTF's Z-up-to-Y-up correction node — a -90 degree rotation about X. Inside
+ * that parent's space, **+Z is world UP and +Y is world depth**.
  *
- * A door has to rotate about its HINGE, not about its own centre, and a glTF
- * node's origin is wherever the exporter happened to leave it. So on mount each
- * leaf is re-parented into a `Group` sitting on its hinge line, using
- * `Object3D.attach()` — which preserves the world transform, so nothing jumps
- * when it is adopted. Rotating that group then rotates the leaf about the hinge,
- * which is what a door does.
+ * The first version of this file measured the hinge in world space, wrote the
+ * result into `pivot.position.z`, and animated `pivot.rotation.y`. Every one of
+ * those is the wrong axis under that correction: the pivot was driven to the
+ * floor, doors swung about a HORIZONTAL axis — Door_00's leading edge ended up
+ * at x -3.68, through a wall that is at -3.0 — and drawers slid straight UP.
+ * On screen a door "just went to the far left", which is exactly what a panel
+ * rotating about the wrong axis does.
+ *
+ * So the basis comes from the PROP ROOT: the pivot is given the prop's own
+ * orientation, and after that its local +Y is world up and its local +Z faces
+ * out of the front of the prop, whatever the asset's native axes were. A future
+ * prop that is not a Z-up export needs no special case.
+ *
+ * THE MATRICES MUST BE FRESH. `<primitive>` carries prop.pos and prop.yaw, and
+ * three.js only folds those into matrixWorld during render. Without an explicit
+ * `updateWorldMatrix` the FIRST openable of each prop is measured in model space
+ * and the rest in world space — because `Object3D.attach()` refreshes ancestors
+ * as a side effect, so measuring the second one happens to be correct. In dev,
+ * StrictMode's second mount hides this entirely; a production build does not.
  *
  * ONE OPENABLE CAN BE SEVERAL MESHES. The glass cabinet's doors are a wooden
- * frame and a separate glass pane; hinging each on its own bounding box would
- * give them different pivots and the glass would swing out of its frame. The
- * pivot is computed from the UNION of the group's nodes, once.
- *
- * ONE AT A TIME. Each openable owns its own state and its own click target.
- * This used to be a single boolean for a whole section, so opening a drawer
- * flung the two cabinets above it open as well — a room-wide poltergeist rather
- * than someone reaching for a drawer.
+ * frame and a separate glass pane; hinging each on its own bounding box gives
+ * them different pivots and swings the glass out of its frame. The pivot is
+ * computed from the UNION of the group's nodes.
  *
  * MUTATES THE SCENE GRAPH, so it must only ever run against a CLONE of the
- * loaded glTF. `ClinicProps` clones per prop, which is what makes that safe —
- * doing this to the cached original would re-parent nodes for every consumer and
- * React strict-mode's double mount would do it twice.
+ * loaded glTF. `ClinicProps` clones per prop, which is what makes that safe.
  */
+
+const UP = new Vector3(0, 1, 0)
+const _swing = new Quaternion()
 
 interface Rig {
   spec: Openable
   id: string
   pivot: Group
-  /** Where the pivot sits when shut, so closing is exact rather than approximate. */
-  restZ: number
+  /** Orientation when shut — the prop's basis, not the leaf's. */
+  base: Quaternion
+  /** Parent-local position when shut, so closing is exact. */
+  rest: Vector3
+  /** Parent-local direction a drawer travels, one unit per metre. */
+  slide: Vector3
   /** Eased 0..1, per part. */
   t: number
 }
@@ -59,14 +72,10 @@ export function Openables({
 }: {
   /** A CLONE of the prop's .glb. */
   scene: Object3D | null
-  /** Which prop's openables to drive. */
   prop: Openable['prop']
   /** The ids currently open. Anything not in here eases shut. */
   openIds: ReadonlySet<string>
-  /**
-   * Called with one openable's id when its click target is hit. Omit to make
-   * the parts move but not be clickable (e.g. driven only by a key prompt).
-   */
+  /** Called with one openable's id when its click target is hit. */
   onToggle?: (id: string) => void
 }) {
   const rigs = useRef<Rig[]>([])
@@ -76,6 +85,12 @@ export function Openables({
 
   useEffect(() => {
     if (!scene) return
+
+    // Fold prop.pos / prop.yaw into matrixWorld before anything is measured.
+    scene.updateWorldMatrix(true, true)
+    const toProp = new Matrix4().copy(scene.matrixWorld).invert()
+    const propQ = scene.getWorldQuaternion(new Quaternion())
+
     const built: Rig[] = []
     const boxes: HitBox[] = []
 
@@ -86,39 +101,54 @@ export function Openables({
       // A missing node is not fatal: the room must still render for anyone on an
       // older .glb from before the parts were named.
       if (!found.length) continue
-
       const parent = found[0].parent
       if (!parent) continue
 
       const box = new Box3()
       for (const n of found) box.expandByObject(n)
 
+      // The same box in the PROP's frame, where +Y is up and +Z faces the room.
+      const propBox = box.clone().applyMatrix4(toProp)
+
       const pivot = new Group()
-      if (spec.kind === 'door') {
-        // Hinge line: the outer vertical edge, on the room-facing side. Hinging
-        // on the centre makes a door pivot through its own frame.
-        const local = parent.worldToLocal(
-          new Vector3(spec.hinge === 'left' ? box.min.x : box.max.x, 0, box.max.z),
-        )
-        pivot.position.set(local.x, 0, local.z)
-      }
+      // Give the pivot the prop's orientation. After this its local axes mean
+      // what they say regardless of the asset's native up-axis.
+      pivot.quaternion
+        .copy(parent.getWorldQuaternion(new Quaternion()))
+        .invert()
+        .multiply(propQ)
+
+      // Hinge line: the outer vertical edge, at the front face, at the bottom.
+      const hinge = new Vector3(
+        spec.hinge === 'right' ? propBox.max.x : propBox.min.x,
+        propBox.min.y,
+        propBox.max.z,
+      ).applyMatrix4(scene.matrixWorld)
+      pivot.position.copy(parent.worldToLocal(hinge))
 
       parent.add(pivot)
       // attach(), not add(): it compensates for the pivot's own transform, so
       // the leaf stays exactly where it was rendering a frame ago.
       for (const n of found) pivot.attach(n)
 
-      const id = openableId(spec)
-      built.push({ spec, id, pivot, restZ: pivot.position.z, t: 0 })
+      const pScale = parent.getWorldScale(new Vector3()).x || 1
+      built.push({
+        spec,
+        id: openableId(spec),
+        pivot,
+        base: pivot.quaternion.clone(),
+        rest: pivot.position.clone(),
+        // The prop's +Z, expressed in parent space, scaled so travel is metres.
+        slide: new Vector3(0, 0, 1).applyQuaternion(pivot.quaternion).multiplyScalar(1 / pScale),
+        t: 0,
+      })
 
       const c = box.getCenter(new Vector3())
       const sz = box.getSize(new Vector3())
       boxes.push({
-        id,
+        id: openableId(spec),
         centre: [c.x, c.y, c.z],
-        // Padded forward a little so the target is comfortable to hit without
-        // swallowing clicks meant for whatever is stored behind it.
-        size: [Math.max(sz.x, 0.05), Math.max(sz.y, 0.05), Math.max(sz.z, 0.03) + 0.05],
+        size: [Math.max(sz.x, 0.06), Math.max(sz.y, 0.06), Math.max(sz.z, 0.04) + 0.06],
       })
     }
 
@@ -150,14 +180,17 @@ export function Openables({
       const target = openIds.has(rig.id) ? 1 : 0
       rig.t += (target - rig.t) * k
       const a = rig.t
+
       if (rig.spec.kind === 'drawer') {
-        rig.pivot.position.z = rig.restZ + rig.spec.travel * a
+        rig.pivot.position.copy(rig.rest).addScaledVector(rig.slide, rig.spec.travel * a)
       } else {
-        // Sign derived and then VERIFIED by applying the same rotation in
-        // Blender and rendering it: a left-hinged leaf has its body at +X of the
-        // hinge and must swing to +Z, which needs a negative rotation.
+        // Post-multiplied, so UP is the PIVOT's local +Y — which is world up,
+        // because the pivot carries the prop's basis. Assigning rotation.y here
+        // would clobber that basis and put us back to swinging sideways.
         const dir = rig.spec.hinge === 'left' ? -1 : 1
-        rig.pivot.rotation.y = dir * rig.spec.travel * a
+        rig.pivot.quaternion
+          .copy(rig.base)
+          .multiply(_swing.setFromAxisAngle(UP, dir * rig.spec.travel * a))
       }
     }
   })

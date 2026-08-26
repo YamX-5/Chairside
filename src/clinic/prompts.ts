@@ -52,6 +52,8 @@ export const PROMPT_TEXT = {
   drawerOpen: { en: 'Open the drawer', ar: 'افتح الدرج' },
   drawerClose: { en: 'Close the drawer', ar: 'أغلق الدرج' },
   board: { en: 'Check your reputation', ar: 'تفقّد سمعتك' },
+  takeXray: { en: 'Take the portable X-ray', ar: 'خذ جهاز الأشعة المحمول' },
+  stowXray: { en: 'Put the X-ray back', ar: 'أعد جهاز الأشعة إلى مكانه' },
   door: { en: 'Leave the clinic', ar: 'غادر العيادة' },
   anaesthetise: { en: 'Give the anaesthetic', ar: 'أعطِ التخدير' },
   alreadyNumb: { en: 'She is already numb', ar: 'هي مخدّرة بالفعل' },
@@ -99,6 +101,9 @@ export function promptFor(s: PromptState): Bi | null {
 
     case 'board':
       return PROMPT_TEXT.board
+
+    case 'xray':
+      return s.holding === 'xray' ? PROMPT_TEXT.stowXray : PROMPT_TEXT.takeXray
 
     case 'door':
       return PROMPT_TEXT.door

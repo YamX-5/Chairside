@@ -12,6 +12,7 @@ import {
   SEATS,
   SPAWN,
   PROPS,
+  XRAY_DOCK,
 } from './layout'
 import { forwardFromYaw } from './movement'
 import { BOUND, PLAYER_RADIUS, ROOM_HALF } from './theme3d'
@@ -116,6 +117,37 @@ for (const it of INTERACTABLES) {
   assert.equal(nearStudy, 'study', 'closest wins')
   const nearSolve = nearestInteractable(solve.x - 0.2, solve.z + 0.5)
   assert.equal(nearSolve, 'solve', 'closest wins on the other side')
+}
+
+// Nothing swallows the spot you stand on to reach the portable X-ray.
+//
+// THE ASSERTION THAT WOULD HAVE CAUGHT IT. A 'board' zone sat 0.75 m in front of
+// the bookcase with a 0.85 m radius, so it covered every standable cell there —
+// including the one you reach the X-ray from. Worse, interact() had no 'board'
+// branch, so the prompt that won was one that could never do anything: walk up,
+// be told "Check your reputation", press E, nothing happens, forever.
+for (const it of INTERACTABLES) {
+  if (it.id === 'xray') continue
+  const d = Math.hypot(it.x - XRAY_DOCK.x, it.z - XRAY_DOCK.z)
+  assert.ok(
+    d > it.radius,
+    `interactable "${it.id}" (radius ${it.radius}) contains XRAY_DOCK — it is ` +
+      `${d.toFixed(2)} m away, so it wins the prompt there and the X-ray ` +
+      `cannot be picked up`,
+  )
+}
+
+// Every interactable must have a branch that does something. A prompt with no
+// handler is worse than no prompt: it tells the player an action exists.
+{
+  const HANDLED = new Set(['study', 'solve', 'drawer', 'gloves', 'xray', 'door'])
+  for (const it of INTERACTABLES) {
+    assert.ok(
+      HANDLED.has(it.id),
+      `interactable "${it.id}" has no branch in ClinicCase.interact() — pressing ` +
+        `E there does nothing, which reads as a broken game`,
+    )
+  }
 }
 
 // No two interactables sit on top of each other — that would make one of them

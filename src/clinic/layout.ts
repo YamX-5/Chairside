@@ -309,7 +309,7 @@ export const UPPER_CABINET_MIN_Y = 1.117
  * Inside the WORKTOP_Y..UPPER_CABINET_MIN_Y band. It used to be 1.24, which is
  * above 1.117 and therefore inside the wall units.
  */
-export const GLOVE_MOUNT_Y = 1.0
+export const GLOVE_MOUNT_Y = 1.02
 
 /** Furniture the player cannot walk through. Kit position x2, plus footprint. */
 export const COLLIDERS: Box[] = [
@@ -361,7 +361,14 @@ export const COLLIDERS: Box[] = [
 ]
 
 
-export type InteractableId = 'study' | 'solve' | 'drawer' | 'board' | 'door' | 'gloves'
+export type InteractableId =
+  | 'study'
+  | 'solve'
+  | 'drawer'
+  | 'board'
+  | 'door'
+  | 'gloves'
+  | 'xray'
 
 export interface Interactable {
   id: InteractableId
@@ -401,16 +408,17 @@ export const INTERACTABLES: Interactable[] = [
   // inside the EtO cart's footprint — an interactable you cannot stand at is an
   // interactable that does not exist.
   { id: 'drawer', x: -1.3, z: STATION.maxZ + 0.45, radius: 0.8 },
-  // The reputation board moved OFF the sterilising wall. In a 4.8 m operatory
-  // the bench run is only 2.25 m long, and a board plus a glove box on the same
-  // run sat 1.00 m apart -- their zones overlapped so heavily that standing to
-  // read one prompted the other. It now hangs on the near wall above the
-  // shelving, which is also where you would actually put a noticeboard: out of
-  // the working zone, where you read it on the way in or out.
-  { id: 'board', x: BOOKCASE_POS[0], z: BOOKCASE_POS[2] - 0.75, radius: 0.85 },
+  // The portable X-ray, on top of the bookcase. Replaces the 'board' zone that
+  // used to be here: that one had no branch in interact() — a prompt that could
+  // never do anything — and its 0.85 m radius covered every spot you could stand
+  // on to reach the X-ray, so the device could not be picked up at all.
+  //
+  // The cork board itself stays as scenery. Not everything on a wall needs to be
+  // a verb.
+  { id: 'xray', x: BOOKCASE_POS[0], z: BOOKCASE_POS[2] - 0.269 / 2 - 0.42, radius: 0.6 },
   // The glove box, on the sterilising run — where you actually glove up.
   // Clear of the station collider (maxZ -1.47) by more than PLAYER_RADIUS.
-  { id: 'gloves', x: 0.35, z: STATION.maxZ + 0.45, radius: 0.75 },
+  { id: 'gloves', x: 0.35, z: STATION.maxZ + 0.45, radius: 0.5 },
 ]
 
 /**
@@ -868,16 +876,45 @@ export function blocked(x: number, z: number, radius: number): boolean {
   return false
 }
 
-/** Nearest interactable within its radius, or null. */
-export function nearestInteractable(x: number, z: number): InteractableId | null {
+/**
+ * How much being turned away from something costs it, in metres of equivalent
+ * distance. Dead behind you costs twice this.
+ *
+ * Facing REORDERS candidates; it never extends reach. A zone you are not inside
+ * stays out of range however squarely you look at it.
+ */
+const FACING_BIAS = 0.55
+
+/**
+ * The interactable you are addressing, or null.
+ *
+ * Takes heading into account, because pure distance produced prompts that
+ * flip-flopped as you turned on the spot: standing between the drawer and the
+ * glove box, whichever happened to be a few centimetres nearer won, regardless
+ * of which one you were looking at.
+ *
+ * `yaw` is optional and must stay so — layout.test.ts calls this with two args.
+ */
+export function nearestInteractable(x: number, z: number, yaw?: number): InteractableId | null {
+  // movement.ts's convention: forward at yaw 0 is -Z.
+  const fx = yaw === undefined ? 0 : -Math.sin(yaw)
+  const fz = yaw === undefined ? 0 : -Math.cos(yaw)
   let best: InteractableId | null = null
-  let bestDist = Infinity
+  let bestScore = Infinity
   for (const it of INTERACTABLES) {
-    const d = Math.hypot(it.x - x, it.z - z)
-    if (d < it.radius && d < bestDist) {
-      bestDist = d
+    const dx = it.x - x
+    const dz = it.z - z
+    const d = Math.hypot(dx, dz)
+    if (d >= it.radius) continue
+    const score =
+      yaw === undefined || d <= 1e-3
+        ? d
+        : d + (1 - ((dx / d) * fx + (dz / d) * fz)) * FACING_BIAS
+    if (score < bestScore) {
+      bestScore = score
       best = it.id
     }
   }
   return best
 }
+

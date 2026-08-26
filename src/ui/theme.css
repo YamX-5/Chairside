@@ -647,7 +647,10 @@ html[dir='rtl'] .text-input {
   inset: 0;
   background: #0b1220;
   overflow: hidden;
-  /* The canvas owns every gesture; the browser must not pan or zoom the page. */
+  /* The canvas owns every gesture; the browser must not pan or zoom the page.
+     Descendants that need scrolling re-grant it for themselves — effective
+     touch-action is the INTERSECTION down the chain, so a child asking for
+     pan-y under a none gets none. See .clinic-scroll. */
   touch-action: none;
 }
 
@@ -1190,4 +1193,14 @@ html[dir='rtl'] .text-input {
   line-height: 1;
   pointer-events: auto;
   cursor: pointer;
+}
+
+
+/* Anything laid over the room that the player must be able to PAN with a finger
+   re-grants vertical scrolling for itself. The root deliberately takes every
+   gesture for the canvas, and a panel of case notes taller than the screen is
+   unreadable without this. */
+.clinic-scroll {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }

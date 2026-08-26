@@ -108,6 +108,17 @@ export interface ClinicCaseProps {
 
 export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {}) {
   const [day, setDay] = useState<DayPhase>('morning')
+  /**
+   * Whether the desk panel is open, SEPARATE from what part of the day it is.
+   *
+   * These used to be the same thing: 'studying' was a DayPhase, so the panel
+   * could only be opened during the morning. After the morning ended the desk
+   * still offered "Read your notes again", the study branch in interact()
+   * refused it because day was no longer 'morning', and the press fell through
+   * to nearestSeat — which silently sat the player down, 0.378 m away, with the
+   * prompt unchanged and no stated way to stand up on a phone. The button lied.
+   */
+  const [deskOpen, setDeskOpen] = useState(false)
   const [tab, setTab] = useState<StudyTab>('summary')
   const [cardIndex, setCardIndex] = useState(0)
   const [arrival, setArrival] = useState(0)
@@ -183,7 +194,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
   const ready = diagnosisId !== null && siteFDI !== null && procedureId !== null
   const correct = verdict?.errorClass === 'F_CORRECT'
   const consequence = verdict ? CORE.consequences[verdict.errorClass] : null
-  const studying = day === 'studying'
+  const studying = deskOpen
   const seated = seatedId ? SEAT_BY_ID.get(seatedId) ?? null : null
   // Seated still counts as roaming for input purposes minus movement — see
   // Player's `frozen` prop: you can look around from a chair, you just can't walk.
@@ -203,12 +214,12 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
       setSeatedId(null)
       return
     }
-    if (day === 'morning' && nearestRef.current === 'study') {
-      setDay('studying')
-      return
-    }
-    if (day === 'studying') {
-      setDay('morning')
+    // The desk. Returns BEFORE nearestSeat, which is what stops the press
+    // falling through and seating the player. Guarded on not being seated and
+    // on the encounter not being underway, so opening the panel can never fight
+    // CameraFocus for the camera.
+    if (nearestRef.current === 'study' && !seatedId && phase === 'deciding') {
+      setDeskOpen((o) => !o)
       return
     }
     // The glove box. Works any time — you can glove up before she even arrives,
@@ -221,6 +232,14 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     // The sterilisation station. Also works any time: opening a drawer is not
     // a clinical act and gating it behind the encounter would just make the
     // room feel like scenery until the patient arrives.
+    // The portable X-ray, off the top of the bookcase. Gated on the same
+    // condition as the tray that renders it — hold an instrument the scene is
+    // not drawing and you are holding nothing at all.
+    if (nearestRef.current === 'xray' && called && arrival >= 1) {
+      setHeldId((h) => (h === 'xray' ? null : 'xray'))
+      return
+    }
+
     if (nearestRef.current === 'drawer') {
       toggleOpenable(DRAWER_PROMPT_OPENS)
       return
@@ -265,6 +284,8 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
 
   /** Finishing the morning opens the clinic. She is not called in yet. */
   const finishStudy = useCallback(() => {
+    // The panel STAYS open: the very next thing the player does is call her in,
+    // and that button is in this same footer.
     setDay('clinic')
     setCalled(false)
     setArrival(0)
@@ -475,7 +496,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             patientName="Mr Haddad"
             waiting={(day === 'clinic' || day === 'done') && !called}
             arriving={called && arrival < 1}
-            onCall={callPatient}
+          onCall={() => {}}
           />
         </Suspense>
 
@@ -663,8 +684,11 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
         cardIndex={cardIndex}
         onCardIndex={setCardIndex}
         onFinish={finishStudy}
-        onMinimise={() => setDay(day === 'morning' || day === 'studying' ? 'morning' : day)}
-        finished={day !== 'morning' && day !== 'studying'}
+        onMinimise={() => setDeskOpen(false)}
+        day={day}
+        called={called}
+        arriving={arrival < 1}
+        onCall={callPatient}
       />
 
       {filmOpen && (

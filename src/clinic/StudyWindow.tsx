@@ -37,7 +37,10 @@ export function StudyWindow({
   onCardIndex,
   onFinish,
   onMinimise,
-  finished,
+  day,
+  called,
+  arriving,
+  onCall,
 }: {
   core: CaseCore
   open: boolean
@@ -54,8 +57,21 @@ export function StudyWindow({
   /** Ends the morning and opens the clinic. */
   onFinish: () => void
   onMinimise: () => void
-  /** True once the morning is over, so the button stops offering it again. */
-  finished: boolean
+  /** Which part of the day it is, so the footer offers the right action. */
+  day: 'morning' | 'studying' | 'clinic' | 'done'
+  /** She has been called in. */
+  called: boolean
+  /** She is mid walk-in. */
+  arriving: boolean
+  /**
+   * Calls the patient in.
+   *
+   * This lived on the in-world monitor as a 3D text strip 32 mm tall. On a phone
+   * that is about fifteen pixels, with the look pad dragging it out from under
+   * your finger — so the entire clinic was gated behind a target nobody could
+   * hit, and the day could not advance at all.
+   */
+  onCall: () => void
 }) {
   const { c, isRtl } = useLocale()
   const [material, setMaterial] = useState<StudyMaterial | null>(null)
@@ -187,13 +203,28 @@ export function StudyWindow({
           )}
         </div>
 
-        {/* -------------------------------------------------------- footer */}
+        {/* -------------------------------------------------------- footer
+
+            EVERY desk action lives here now. "Call the patient in" used to be a
+            3D <Text> hit strip 0.468 m wide and 32 mm TALL inside the in-world
+            monitor — roughly fifteen pixels on a phone, with the look pad
+            dragging it out from under your finger. The whole clinic was gated
+            behind a target you could not hit, so the day could not advance at
+            all on a phone. The monitor is decorative; this is the interface. */}
         <div style={S.footer}>
           <span style={S.hint}>{c(TEXT.escHint)}</span>
-          {!finished && (
+          {day === 'morning' || day === 'studying' ? (
             <button type="button" style={S.finish} onClick={onFinish}>
               {c(TEXT.finish)}
             </button>
+          ) : !called ? (
+            <button type="button" style={S.finish} onClick={onCall}>
+              {c(TEXT.call)}
+            </button>
+          ) : (
+            <span style={S.status}>
+              {c(arriving ? TEXT.coming : day === 'done' ? TEXT.seen : TEXT.inChair)}
+            </span>
           )}
         </div>
       </div>
@@ -213,6 +244,10 @@ const TEXT = {
   next: { en: 'Next', ar: 'التالي' },
   prev: { en: 'Back', ar: 'السابق' },
   finish: { en: 'Done — open the clinic', ar: 'انتهيت — افتح العيادة' },
+  call: { en: 'Call the patient in', ar: 'نادِ المريض للدخول' },
+  coming: { en: 'She is coming through…', ar: 'هي في طريقها للدخول…' },
+  inChair: { en: 'She is in the chair', ar: 'هي على الكرسي' },
+  seen: { en: 'Seen', ar: 'تمّت المعاينة' },
   escHint: { en: 'Esc or ▁ puts it back on the monitor', ar: 'زر Esc أو ▁ يعيدها إلى الشاشة' },
   summaryNote: {
     en: 'This is the reasoning the day turns on. The cards drill the details you will be asked for.',
@@ -233,8 +268,8 @@ const S: Record<string, CSSProperties> = {
     position: 'absolute',
     left: '50%',
     top: '50%',
-    width: 'min(76vw, 880px)',
-    maxHeight: '78vh',
+    width: 'min(94vw, 880px)',
+    maxHeight: '82vh',
     display: 'flex',
     flexDirection: 'column',
     pointerEvents: 'auto',
@@ -294,7 +329,16 @@ const S: Record<string, CSSProperties> = {
     cursor: 'pointer',
   },
   tabOn: { background: '#11161d', color: '#e8eff6' },
-  body: { padding: '1.3rem 1.5rem', overflowY: 'auto', flex: 1 },
+  body: {
+    padding: '1.3rem 1.5rem',
+    overflowY: 'auto',
+    flex: 1,
+    // The root sets touch-action: none so the canvas owns every gesture. This
+    // re-grants vertical panning INSIDE the panel only — without it a case that
+    // overflows the screen is unreadable past the fold on a phone.
+    touchAction: 'pan-y',
+    WebkitOverflowScrolling: 'touch',
+  },
   lead: { margin: 0, fontSize: '1.02rem', lineHeight: 1.62, color: '#e2eaf2' },
   note: { marginTop: '1.1rem', fontSize: '0.83rem', lineHeight: 1.55, color: '#78859a' },
   cardWrap: { display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' },
@@ -303,14 +347,14 @@ const S: Record<string, CSSProperties> = {
     lineHeight: 1.5,
     color: '#f0f5fa',
     textAlign: 'center',
-    maxWidth: '54ch',
+    maxWidth: '46ch',
   },
   cardBack: {
     fontSize: '1rem',
     lineHeight: 1.6,
     color: '#b9dfd9',
     textAlign: 'center',
-    maxWidth: '58ch',
+    maxWidth: '46ch',
     padding: '0.9rem 1.1rem',
     borderRadius: 9,
     background: 'rgba(109,197,188,0.08)',
@@ -346,6 +390,7 @@ const S: Record<string, CSSProperties> = {
     background: '#0c1015',
   },
   hint: { fontSize: '0.76rem', color: '#66727f' },
+  status: { fontSize: '0.9rem', color: '#8fe0d7', fontWeight: 600 },
   finish: {
     padding: '0.5rem 1.2rem',
     borderRadius: 8,

@@ -37,7 +37,7 @@ const spot = INTERACTABLES.find((i) => i.id === 'gloves')!
 
 export const GloveBox = memo(function GloveBox({ gloved }: { gloved: boolean }) {
   return (
-    <group position={[spot.x, MOUNT_Y, CABINET_FACE_Z + 0.015]}>
+    <group position={[spot.x, MOUNT_Y, CABINET_FACE_Z + 0.035]}>
       {/* The dispenser body. Tilted forward slightly so the opening faces the
           room rather than the ceiling — that tilt is what makes it read as a
           dispenser and not a box screwed to a wall. */}
