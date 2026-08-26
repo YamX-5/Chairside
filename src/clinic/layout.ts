@@ -865,6 +865,24 @@ export const DOORWAY = {
   z: INTERACTABLE_BY_ID.get('door')!.z,
 }
 
+/**
+ * The hole in the wall, as a ROUGH OPENING rather than a clear width.
+ *
+ * The wall used to be an unbroken plane, so the room had no exit and the patient
+ * walked out of solid plaster. These are the numbers the aperture is cut to.
+ *
+ * 0.97 x 2.06 m is a 3'-0" x 6'-8" leaf plus its jambs. With a frame in it that
+ * leaves about 0.86 m of clear width — past the 813 mm (32 in) minimum that
+ * IBC 1010.1.1 and ICC A117.1 404.2.3 specify. Those standards state their rule
+ * in CLEAR width, which is why the aperture has to be cut wider than the rule.
+ *
+ * Header at 2.06 m leaves 0.74 m of wall above it under the 2.8 m ceiling.
+ */
+export const DOORWAY_WIDTH = 0.97
+export const DOORWAY_HEIGHT = 2.06
+/** Where the patient becomes visible: in the opening, not out on the floor. */
+export const DOORWAY_ENTRY_Z = ROOM_HALF - 0.1
+
 /** True when the point is inside any collider, expanded by the player radius. */
 export function blocked(x: number, z: number, radius: number): boolean {
   for (const b of COLLIDERS) {
