@@ -16,12 +16,26 @@ interface Props {
   onInteract: () => void
 }
 
+/**
+ * How far a thumb may travel and still count as a tap, in CSS pixels.
+ *
+ * Roughly what a browser itself allows before it withholds the `click`, so the
+ * camera stays still for exactly the gestures that will produce one. Smaller and
+ * a steady tap still nudges the view; larger and the look feels like it sticks
+ * before it starts.
+ */
+const TAP_SLOP = 9
+
 export function TouchControls({ promptLabel, onInteract }: Props) {
   const stickBase = useRef<HTMLDivElement>(null)
   const stickKnob = useRef<HTMLDivElement>(null)
   const movePointer = useRef<number | null>(null)
   const lookPointer = useRef<number | null>(null)
   const lookLast = useRef({ x: 0, y: 0 })
+  /** Where the thumb went down, so a tap can be told from a drag. */
+  const lookStart = useRef({ x: 0, y: 0 })
+  /** True once the thumb has travelled past TAP_SLOP and is really looking. */
+  const dragging = useRef(false)
 
   useEffect(() => {
     const base = stickBase.current
@@ -105,9 +119,36 @@ export function TouchControls({ promptLabel, onInteract }: Props) {
       if (target.closest('button') || target.closest('.stick-base')) return
       lookPointer.current = e.pointerId
       lookLast.current = { x: e.clientX, y: e.clientY }
+      lookStart.current = { x: e.clientX, y: e.clientY }
+      dragging.current = false
     }
     function onMove(e: PointerEvent) {
       if (e.pointerId !== lookPointer.current) return
+
+      // A TAP MUST NOT TURN THE CAMERA. Until the thumb has travelled past the
+      // slop, nothing is fed to the look at all.
+      //
+      // Without this, tapping a drawer just turned your head and never opened
+      // it. r3f decides a click by re-raycasting from the CURRENT camera and
+      // only firing if the object was also under the pointer at pointerdown — so
+      // any camera movement in between makes the second ray miss. The gain makes
+      // it worse than it sounds: at the shipped field of view a pixel of thumb
+      // drift slides the target about two pixels across the screen, so a normal
+      // thumb wobble is enough. Past the browser's own tap slop no click is
+      // dispatched at all.
+      if (!dragging.current) {
+        const travel = Math.hypot(
+          e.clientX - lookStart.current.x,
+          e.clientY - lookStart.current.y,
+        )
+        if (travel < TAP_SLOP) return
+        dragging.current = true
+        // Resume from HERE, not from the touch-down point, or the camera jumps
+        // by the whole slop distance the instant the drag is recognised.
+        lookLast.current = { x: e.clientX, y: e.clientY }
+        return
+      }
+
       touchLook.dx += e.clientX - lookLast.current.x
       touchLook.dy += e.clientY - lookLast.current.y
       lookLast.current = { x: e.clientX, y: e.clientY }
@@ -115,6 +156,7 @@ export function TouchControls({ promptLabel, onInteract }: Props) {
     function onUp(e: PointerEvent) {
       if (e.pointerId !== lookPointer.current) return
       lookPointer.current = null
+      dragging.current = false
     }
     window.addEventListener('pointerdown', onDown)
     window.addEventListener('pointermove', onMove)
