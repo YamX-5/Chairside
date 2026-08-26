@@ -4,7 +4,8 @@ import { AnimationMixer, Group, Object3D, Vector3, type AnimationAction } from '
 import { SkeletonUtils } from 'three-stdlib'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
-import { CHAIR_FACING, DOORWAY, SEAT_WORLD } from './layout'
+import { findParts, type RigParts } from './patientBones'
+import { CHAIR_FACING, DOORWAY, DOORWAY_ENTRY_Z, SEAT_WORLD } from './layout'
 import type { ReactionPose } from './reaction'
 
 /**
@@ -30,37 +31,6 @@ import type { ReactionPose } from './reaction'
  * it across two useFrame callbacks would put it at the mercy of priority
  * numbers — which in r3f also decide who owns the render loop.
  */
-
-/** Logical part -> Mixamo bone. The colon is part of the name; Blender's glTF
- *  exporter preserves `mixamorig:` verbatim rather than sanitising it. */
-const BONES = {
-  hips: 'mixamorig:Hips',
-  chest: 'mixamorig:Spine2',
-  neck: 'mixamorig:Neck',
-  head: 'mixamorig:Head',
-  upperArmL: 'mixamorig:LeftArm',
-  upperArmR: 'mixamorig:RightArm',
-  forearmL: 'mixamorig:LeftForeArm',
-  forearmR: 'mixamorig:RightForeArm',
-  thighL: 'mixamorig:LeftUpLeg',
-  thighR: 'mixamorig:RightUpLeg',
-  shinL: 'mixamorig:LeftLeg',
-  shinR: 'mixamorig:RightLeg',
-} as const
-
-export type RigParts = Partial<Record<keyof typeof BONES | 'eyes', Object3D>>
-
-function findParts(root: Object3D): RigParts {
-  const out: RigParts = {}
-  for (const [key, bone] of Object.entries(BONES)) {
-    out[key as keyof typeof BONES] = root.getObjectByName(bone) ?? undefined
-  }
-  // Bone-parented in Blender and deliberately NOT skinned, so its scale is free
-  // for the blink. A skinned mesh cannot be squashed this way — the skinning
-  // matrices rewrite the object transform every frame.
-  out.eyes = root.getObjectByName('Eyes') ?? undefined
-  return out
-}
 
 export interface PatientRigProps {
   /**
@@ -104,10 +74,15 @@ const FACING = CHAIR_FACING
  * raw world-space delta would walk her in from a direction ninety degrees off.
  * Rotating the delta by -FACING converts world into local, once, at module load.
  */
-const DOOR_LOCAL = new Vector3(DOORWAY.x - SEAT[0], 0, DOORWAY.z - SEAT[2]).applyAxisAngle(
-  new Vector3(0, 1, 0),
-  -FACING,
-)
+const DOOR_LOCAL = new Vector3(
+  DOORWAY.x - SEAT[0],
+  0,
+  // The opening in the wall, not the spot you stand at to use the door. Those
+  // are 0.9 m apart, and starting her at the standing spot popped her into
+  // existence on open floor. From the aperture the wall occludes her first
+  // stride, which is what makes it read as walking IN.
+  DOORWAY_ENTRY_Z - SEAT[2],
+).applyAxisAngle(new Vector3(0, 1, 0), -FACING)
 
 /** Below this she is still crossing the room; above it she is sitting down. */
 const SIT_STARTS_AT = 0.8
@@ -139,7 +114,7 @@ export function PatientRig({
   const mixer = useRef<AnimationMixer | null>(null)
   const actions = useRef<Record<string, AnimationAction>>({})
   const current = useRef<string>('')
-  const hipsRestXZ = useRef<{ x: number; z: number } | null>(null)
+  const hipsRest = useRef<Vector3 | null>(null)
   // Read inside useFrame rather than closed over, so changing arrival does not
   // need to re-register the frame callback.
   const arrivalRef = useRef(arrival)
@@ -155,7 +130,7 @@ export function PatientRig({
 
     blink.current.restZ = parts.current.eyes?.scale.z ?? 1
     const hips = parts.current.hips
-    hipsRestXZ.current = hips ? { x: hips.position.x, z: hips.position.z } : null
+    hipsRest.current = hips ? hips.position.clone() : null
 
     const m = new AnimationMixer(scene)
     mixer.current = m
@@ -196,14 +171,24 @@ export function PatientRig({
     // --- 2. the mixer writes every bone it owns ---------------------------
     if (m) m.update(delta)
 
-    // Mixamo's Walking clip carries ROOT MOTION: the hips translate forward,
-    // which would fight the walkIn group that is already carrying her across the
-    // room and leave her drifting off the path. Vertical motion is kept, because
-    // that is the bob of the walk and the drop into the seat.
-    if (want === 'Walking' && p.hips && hipsRestXZ.current) {
-      p.hips.position.x = hipsRestXZ.current.x
-      p.hips.position.z = hipsRestXZ.current.z
-    }
+    // STRIP THE HIPS TRANSLATION ENTIRELY, on every clip.
+    //
+    // Every clip in this asset carries travel in its hips position track, and
+    // not in a frame that is consistent between them — measured with
+    // scripts/probe_patient.mts, Walking puts 170 units into y, StandToSit -48,
+    // SittingIdle 45 into z, and sitting reads HIGHER than standing on all three
+    // axes. There is no axis that means "up" across the set.
+    //
+    // This used to strip x and z and deliberately keep y "for the bob of the
+    // walk", which kept the one component carrying the 170-unit travel. It never
+    // showed, because the bone was never found to strip in the first place —
+    // findParts looked up "mixamorig:Hips" and three had renamed it
+    // "mixamorigHips". So the raw track ran untouched and drove her through the
+    // floor.
+    //
+    // Where she is standing is the walkIn group's job. The clips are kept for
+    // their bone ROTATIONS, which are what actually read as walking and sitting.
+    if (p.hips && hipsRest.current) p.hips.position.copy(hipsRest.current)
 
     // --- 3. procedural layer, ADDED on top of the clip --------------------
     // Everything below is `+=`, never `=`. The mixer has already written this
@@ -271,7 +256,18 @@ export function PatientRig({
       // DOOR_LOCAL is the doorway expressed in this group's own rotated frame —
       // the parent is turned to face the chair, so a raw world delta would send
       // her walking in from ninety degrees off.
-      walk.position.set(DOOR_LOCAL.x * (1 - e), 0, DOOR_LOCAL.z * (1 - e))
+      // Height, not just the floor plan. Her group is anchored at SEAT_WORLD,
+      // which is 0.37 m up — the cushion. Her model's origin is at her FEET
+      // (measured: the rest bbox spans y -0.001 .. 1.770), so holding her there
+      // while she crosses the room walks her through the air. Drop her to the
+      // floor for the walk and lift her onto the cushion as she sits.
+      const sit =
+        a <= SIT_STARTS_AT ? 0 : (a - SIT_STARTS_AT) / (1 - SIT_STARTS_AT)
+      walk.position.set(
+        DOOR_LOCAL.x * (1 - e),
+        -SEAT[1] * (1 - sit),
+        DOOR_LOCAL.z * (1 - e),
+      )
       // She turns to face the chair as she arrives, rather than gliding in
       // already-oriented like a chess piece.
       walk.rotation.y = (1 - e) * -0.9
