@@ -117,9 +117,19 @@ export default defineConfig({
     devFileDrop(),
     react(),
     VitePWA({
-      // Content is baked into the precache — a silently stale service worker
-      // would leave students playing last week's clinic days.
-      registerType: 'prompt',
+      // AUTO-UPDATE, not 'prompt'.
+      //
+      // 'prompt' installs the new service worker and leaves it WAITING until the
+      // app shows an update prompt and the user accepts. This app never rendered
+      // that prompt, so once a phone had visited once it served the same cached
+      // build forever. Four consecutive releases of bug fixes were deployed
+      // correctly, verified live, and invisible on the actual device — the
+      // tester kept re-reporting bugs that were already fixed, and every
+      // diagnosis started from a build nobody was running.
+      //
+      // While the game is under daily development, a stale client is far more
+      // expensive than an interrupted session.
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
         name: 'Chairside — your slides become patients',
@@ -144,6 +154,14 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Take over from the previous worker immediately instead of waiting for
+        // every tab to close. Without clientsClaim the new worker installs and
+        // then sits idle while the old one keeps answering.
+        clientsClaim: true,
+        skipWaiting: true,
+        // Drop precaches from older builds, or the device keeps paying for
+        // assets no version references any more.
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // Phaser's chunk is large; the default 2 MB limit would skip it.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
