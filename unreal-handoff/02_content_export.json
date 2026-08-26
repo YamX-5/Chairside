@@ -1,0 +1,1059 @@
+{
+  "exportVersion": 1,
+  "exportedFrom": "chairside-web (react-three-fiber build, retired)",
+  "note": "Engine-neutral content export for the Unreal Engine rebuild. Every field traces to src/content/days/*.ts — nothing here was invented for the export. See unreal-handoff/02_CONTENT_SCHEMA.md for what each field means and how to turn this into an Unreal DataTable.",
+  "days": [
+    {
+      "id": "perio-staging",
+      "schemaVersion": 1,
+      "track": "dental",
+      "subject": {
+        "en": "Periodontology",
+        "ar": "أمراض اللثة"
+      },
+      "title": {
+        "en": "Staging & Grading",
+        "ar": "التصنيف والتدريج"
+      },
+      "isDemo": true,
+      "citations": [
+        "2018 EFP/AAP classification of periodontal diseases",
+        "Löe & Silness gingival index (1963)"
+      ],
+      "provenance": null,
+      "slides": [],
+      "studyNotes": {
+        "title": {
+          "en": "Prep: staging a perio case",
+          "ar": "التحضير: تصنيف حالة لثوية"
+        },
+        "intro": {
+          "en": "A perio referral is booked for 3pm. You have the morning to prep — learn it now, use it this afternoon.",
+          "ar": "لديك إحالة لثوية الساعة 3 عصراً. أمامك الصباح للتحضير — تعلّمها الآن، واستخدمها بعد الظهر."
+        },
+        "sections": [
+          {
+            "id": "c1",
+            "heading": {
+              "en": "What stage measures",
+              "ar": "ماذا يقيس التصنيف"
+            },
+            "body": {
+              "en": "Stage describes the severity and complexity of damage already done. It is set by the worst site: interdental clinical attachment loss (CAL) at the site of greatest loss, backed up by radiographic bone loss and tooth loss from periodontitis. Stage never goes down — damage is history, and history does not heal.",
+              "ar": "يصف التصنيف شدة وتعقيد الضرر الحاصل بالفعل. يُحدَّد بأسوأ موقع: فقدان الارتباط السريري بين الأسنان (CAL) في الموقع الأكثر تضرراً، مدعوماً بفقدان العظم الشعاعي وفقدان الأسنان بسبب التهاب دواعم السن. التصنيف لا ينخفض أبداً — فالضرر تاريخ، والتاريخ لا يُشفى."
+            },
+            "linkedQuestionId": "c1q",
+            "sourceRef": {
+              "en": "Slide 12"
+            }
+          },
+          {
+            "id": "c2",
+            "heading": {
+              "en": "The four stages",
+              "ar": "المراحل الأربع"
+            },
+            "body": {
+              "en": "Stage I: CAL 1–2 mm. Stage II: CAL 3–4 mm. Stage III: CAL ≥5 mm, bone loss extending to the mid-third of the root or beyond, up to 4 teeth lost. Stage IV: same attachment loss but with masticatory dysfunction — 5 or more teeth lost, bite collapse, drifting, less than 20 remaining teeth. The jump from III to IV is about function, not millimetres.",
+              "ar": "المرحلة الأولى: CAL 1–2 ملم. الثانية: 3–4 ملم. الثالثة: CAL ≥5 ملم مع امتداد فقدان العظم إلى الثلث الأوسط للجذر أو أبعد، وفقدان حتى 4 أسنان. الرابعة: نفس فقدان الارتباط لكن مع خلل وظيفي في المضغ — فقدان 5 أسنان أو أكثر، انهيار الإطباق، هجرة الأسنان، أقل من 20 سناً متبقياً. الانتقال من الثالثة إلى الرابعة يتعلق بالوظيفة لا بالمليمترات."
+            },
+            "linkedQuestionId": "c2q",
+            "sourceRef": {
+              "en": "Slide 18"
+            }
+          },
+          {
+            "id": "c3",
+            "heading": {
+              "en": "Grade = speed",
+              "ar": "التدريج = السرعة"
+            },
+            "body": {
+              "en": "Grade estimates how fast the disease is moving and how it will answer treatment. Direct evidence is bone loss over time; indirect evidence is the ratio of radiographic bone loss percentage to age. Below 0.25 is Grade A, 0.25–1.0 is Grade B, above 1.0 is Grade C. Smoking and poorly controlled diabetes are grade modifiers that shift the case upward regardless of the ratio.",
+              "ar": "يُقدِّر التدريج سرعة تقدّم المرض وكيفية استجابته للعلاج. الدليل المباشر هو فقدان العظم عبر الزمن؛ والدليل غير المباشر هو نسبة فقدان العظم الشعاعي إلى العمر. أقل من 0.25 درجة A، ومن 0.25 إلى 1.0 درجة B، وأكثر من 1.0 درجة C. التدخين والسكري غير المضبوط عاملان معدِّلان يرفعان الدرجة بغض النظر عن النسبة."
+            },
+            "linkedQuestionId": "c3q",
+            "sourceRef": {
+              "en": "Slide 24"
+            }
+          }
+        ]
+      },
+      "flashcardSourceQuestionIds": [
+        "c1q",
+        "c2q",
+        "c3q",
+        "d1",
+        "d2",
+        "d3",
+        "d4"
+      ],
+      "prep": {
+        "missionTitle": {
+          "en": "Prep: staging a perio case",
+          "ar": "التحضير: تصنيف حالة لثوية"
+        },
+        "briefing": {
+          "en": "A perio referral is booked for 3pm. You have the morning to prep — learn it now, use it this afternoon.",
+          "ar": "لديك إحالة لثوية الساعة 3 عصراً. أمامك الصباح للتحضير — تعلّمها الآن، واستخدمها بعد الظهر."
+        },
+        "chunks": [
+          {
+            "id": "c1",
+            "title": {
+              "en": "What stage measures",
+              "ar": "ماذا يقيس التصنيف"
+            },
+            "body": {
+              "en": "Stage describes the severity and complexity of damage already done. It is set by the worst site: interdental clinical attachment loss (CAL) at the site of greatest loss, backed up by radiographic bone loss and tooth loss from periodontitis. Stage never goes down — damage is history, and history does not heal.",
+              "ar": "يصف التصنيف شدة وتعقيد الضرر الحاصل بالفعل. يُحدَّد بأسوأ موقع: فقدان الارتباط السريري بين الأسنان (CAL) في الموقع الأكثر تضرراً، مدعوماً بفقدان العظم الشعاعي وفقدان الأسنان بسبب التهاب دواعم السن. التصنيف لا ينخفض أبداً — فالضرر تاريخ، والتاريخ لا يُشفى."
+            },
+            "question": {
+              "id": "c1q",
+              "prompt": {
+                "en": "Which measurement primarily determines the stage?",
+                "ar": "أي قياس يُحدِّد التصنيف بشكل أساسي؟"
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "label": {
+                    "en": "Interdental CAL at the site of greatest loss",
+                    "ar": "فقدان الارتباط السريري بين الأسنان في الموقع الأكثر تضرراً"
+                  },
+                  "isCorrect": true
+                },
+                {
+                  "id": "b",
+                  "label": {
+                    "en": "Probing depth averaged across the mouth",
+                    "ar": "متوسط عمق السبر في الفم كاملاً"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "c",
+                  "label": {
+                    "en": "Bleeding on probing percentage",
+                    "ar": "نسبة النزف عند السبر"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "d",
+                  "label": {
+                    "en": "Plaque index",
+                    "ar": "مشعر اللويحة"
+                  },
+                  "isCorrect": false
+                }
+              ],
+              "explanation": {
+                "en": "Stage is set by the worst interdental CAL — not by averages and not by inflammation markers, which change week to week.",
+                "ar": "يُحدَّد التصنيف بأسوأ قيمة لفقدان الارتباط بين الأسنان — لا بالمتوسطات ولا بمؤشرات الالتهاب التي تتغير أسبوعياً."
+              },
+              "sourceRef": {
+                "en": "Slide 12"
+              }
+            }
+          },
+          {
+            "id": "c2",
+            "title": {
+              "en": "The four stages",
+              "ar": "المراحل الأربع"
+            },
+            "body": {
+              "en": "Stage I: CAL 1–2 mm. Stage II: CAL 3–4 mm. Stage III: CAL ≥5 mm, bone loss extending to the mid-third of the root or beyond, up to 4 teeth lost. Stage IV: same attachment loss but with masticatory dysfunction — 5 or more teeth lost, bite collapse, drifting, less than 20 remaining teeth. The jump from III to IV is about function, not millimetres.",
+              "ar": "المرحلة الأولى: CAL 1–2 ملم. الثانية: 3–4 ملم. الثالثة: CAL ≥5 ملم مع امتداد فقدان العظم إلى الثلث الأوسط للجذر أو أبعد، وفقدان حتى 4 أسنان. الرابعة: نفس فقدان الارتباط لكن مع خلل وظيفي في المضغ — فقدان 5 أسنان أو أكثر، انهيار الإطباق، هجرة الأسنان، أقل من 20 سناً متبقياً. الانتقال من الثالثة إلى الرابعة يتعلق بالوظيفة لا بالمليمترات."
+            },
+            "question": {
+              "id": "c2q",
+              "prompt": {
+                "en": "A patient has CAL of 6 mm and has lost 6 teeth to periodontitis, with a collapsed bite. Stage?",
+                "ar": "مريض لديه CAL بمقدار 6 ملم وفقد 6 أسنان بسبب التهاب دواعم السن مع انهيار في الإطباق. ما المرحلة؟"
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "label": {
+                    "en": "Stage II",
+                    "ar": "المرحلة الثانية — Stage II"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "b",
+                  "label": {
+                    "en": "Stage III",
+                    "ar": "المرحلة الثالثة — Stage III"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "c",
+                  "label": {
+                    "en": "Stage IV",
+                    "ar": "المرحلة الرابعة — Stage IV"
+                  },
+                  "isCorrect": true
+                },
+                {
+                  "id": "d",
+                  "label": {
+                    "en": "Cannot be staged without radiographs",
+                    "ar": "لا يمكن التصنيف دون صور شعاعية"
+                  },
+                  "isCorrect": false
+                }
+              ],
+              "explanation": {
+                "en": "≥5 teeth lost plus masticatory dysfunction pushes the case to Stage IV even though the CAL alone would read as Stage III.",
+                "ar": "فقدان 5 أسنان أو أكثر مع خلل وظيفي في المضغ يرفع الحالة إلى المرحلة الرابعة رغم أن قيمة CAL وحدها تقرأ كمرحلة ثالثة."
+              },
+              "sourceRef": {
+                "en": "Slide 18"
+              }
+            }
+          },
+          {
+            "id": "c3",
+            "title": {
+              "en": "Grade = speed",
+              "ar": "التدريج = السرعة"
+            },
+            "body": {
+              "en": "Grade estimates how fast the disease is moving and how it will answer treatment. Direct evidence is bone loss over time; indirect evidence is the ratio of radiographic bone loss percentage to age. Below 0.25 is Grade A, 0.25–1.0 is Grade B, above 1.0 is Grade C. Smoking and poorly controlled diabetes are grade modifiers that shift the case upward regardless of the ratio.",
+              "ar": "يُقدِّر التدريج سرعة تقدّم المرض وكيفية استجابته للعلاج. الدليل المباشر هو فقدان العظم عبر الزمن؛ والدليل غير المباشر هو نسبة فقدان العظم الشعاعي إلى العمر. أقل من 0.25 درجة A، ومن 0.25 إلى 1.0 درجة B، وأكثر من 1.0 درجة C. التدخين والسكري غير المضبوط عاملان معدِّلان يرفعان الدرجة بغض النظر عن النسبة."
+            },
+            "question": {
+              "id": "c3q",
+              "prompt": {
+                "en": "A 40-year-old has 20% radiographic bone loss. What is the bone loss / age ratio and grade?",
+                "ar": "مريض عمره 40 عاماً لديه فقدان عظم شعاعي 20%. ما نسبة فقدان العظم إلى العمر وما الدرجة؟"
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "label": {
+                    "en": "0.5 — Grade B",
+                    "ar": "0.5 — الدرجة B"
+                  },
+                  "isCorrect": true
+                },
+                {
+                  "id": "b",
+                  "label": {
+                    "en": "0.5 — Grade A",
+                    "ar": "0.5 — الدرجة A"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "c",
+                  "label": {
+                    "en": "2.0 — Grade C",
+                    "ar": "2.0 — الدرجة C"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "d",
+                  "label": {
+                    "en": "0.2 — Grade A",
+                    "ar": "0.2 — الدرجة A"
+                  },
+                  "isCorrect": false
+                }
+              ],
+              "explanation": {
+                "en": "20 ÷ 40 = 0.5, which lands in the 0.25–1.0 band: Grade B. A smoking history would then push it toward Grade C.",
+                "ar": "20 ÷ 40 = 0.5، وتقع ضمن النطاق 0.25–1.0 أي الدرجة B. ووجود تدخين يدفعها نحو الدرجة C."
+              },
+              "sourceRef": {
+                "en": "Slide 24"
+              }
+            }
+          }
+        ]
+      },
+      "treat": {
+        "missionTitle": {
+          "en": "Treat: the 3pm referral",
+          "ar": "العلاج: إحالة الساعة 3"
+        },
+        "cases": [
+          {
+            "id": "p1",
+            "patient": {
+              "name": {
+                "en": "Rami H.",
+                "ar": "رامي ح."
+              },
+              "age": 38,
+              "avatar": "🧔"
+            },
+            "chiefComplaint": {
+              "en": "\"My gums bleed every time I brush, and my front teeth have started to spread apart.\"",
+              "ar": "«لثتي تنزف كلما نظّفت أسناني، وأسناني الأمامية بدأت تتباعد.»"
+            },
+            "history": {
+              "en": "Smokes 15 cigarettes a day for 18 years. No diabetes. Last cleaning was 4 years ago.",
+              "ar": "يدخّن 15 سيجارة يومياً منذ 18 عاماً. لا يوجد سكري. آخر تنظيف كان قبل 4 سنوات."
+            },
+            "findings": [
+              {
+                "en": "Interdental CAL 6 mm at the worst site (upper right first molar)",
+                "ar": "فقدان ارتباط سريري بين الأسنان 6 ملم في أسوأ موقع (الرحى الأولى العلوية اليمنى)"
+              },
+              {
+                "en": "Radiographic bone loss ~45%, extending to the mid-third of the roots",
+                "ar": "فقدان عظم شعاعي ~45% يمتد إلى الثلث الأوسط للجذور"
+              },
+              {
+                "en": "No teeth lost to periodontitis; 28 teeth present",
+                "ar": "لا فقدان أسنان بسبب التهاب دواعم السن؛ 28 سناً موجودة"
+              },
+              {
+                "en": "Bleeding on probing 62%; generalised",
+                "ar": "نزف عند السبر 62%؛ معمّم"
+              }
+            ],
+            "decisions": [
+              {
+                "id": "d1",
+                "prompt": {
+                  "en": "Stage this case.",
+                  "ar": "صنّف هذه الحالة."
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "Stage II",
+                      "ar": "المرحلة الثانية — Stage II"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Stage II tops out at 4 mm CAL. This patient is at 6 mm with bone loss into the mid-third of the root.",
+                      "ar": "المرحلة الثانية تصل حتى 4 ملم فقط. هذا المريض عند 6 ملم مع فقدان عظم يصل إلى الثلث الأوسط للجذر."
+                    },
+                    "sourceRef": {
+                      "en": "Slide 18"
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "Stage III",
+                      "ar": "المرحلة الثالثة — Stage III"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct. CAL ≥5 mm with bone loss to the mid-third and no tooth loss from periodontitis — textbook Stage III.",
+                      "ar": "صحيح. CAL ≥5 ملم مع فقدان عظم حتى الثلث الأوسط ودون فقدان أسنان بسبب المرض — مرحلة ثالثة نموذجية."
+                    },
+                    "sourceRef": {
+                      "en": "Slide 18"
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "Stage IV",
+                      "ar": "المرحلة الرابعة — Stage IV"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Stage IV needs masticatory dysfunction — 5+ teeth lost, bite collapse, drifting. He has all 28 teeth and a stable bite.",
+                      "ar": "المرحلة الرابعة تتطلب خللاً وظيفياً في المضغ — فقدان 5 أسنان أو أكثر أو انهيار الإطباق. لديه 28 سناً وإطباق مستقر."
+                    },
+                    "sourceRef": {
+                      "en": "Slide 18"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "d2",
+                "prompt": {
+                  "en": "Grade it. He is 38 with ~45% bone loss and smokes 15/day.",
+                  "ar": "حدّد الدرجة. عمره 38 ولديه فقدان عظم ~45% ويدخّن 15 سيجارة يومياً."
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "Grade A",
+                      "ar": "الدرجة A — Grade A"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Grade A means slow progression, ratio under 0.25. His ratio is 45 ÷ 38 ≈ 1.18.",
+                      "ar": "الدرجة A تعني تقدماً بطيئاً بنسبة أقل من 0.25. نسبته 45 ÷ 38 ≈ 1.18."
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "Grade B",
+                      "ar": "الدرجة B — Grade B"
+                    },
+                    "quality": "acceptable",
+                    "feedback": {
+                      "en": "Close, but the ratio is 1.18 — above the 1.0 cut-off — and 15 cigarettes a day is itself a Grade C modifier.",
+                      "ar": "قريب، لكن النسبة 1.18 أي فوق الحد 1.0، كما أن 15 سيجارة يومياً بحد ذاتها عامل يرفع إلى الدرجة C."
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "Grade C",
+                      "ar": "الدرجة C — Grade C"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct. 45 ÷ 38 ≈ 1.18 (>1.0), and heavy smoking is a grade modifier pushing to C. Expect rapid progression.",
+                      "ar": "صحيح. 45 ÷ 38 ≈ 1.18 (أكبر من 1.0)، والتدخين الكثيف عامل معدِّل يرفع إلى C. توقّع تقدماً سريعاً."
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "d3",
+                "prompt": {
+                  "en": "What is the extent descriptor?",
+                  "ar": "ما واصف الامتداد؟"
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "Localised (<30% of sites)",
+                      "ar": "موضّع Localised (أقل من 30% من المواقع)"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Bleeding and attachment loss are described as generalised across the mouth.",
+                      "ar": "النزف وفقدان الارتباط موصوفان كمعمّمين في الفم كاملاً."
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "Generalised (≥30% of sites)",
+                      "ar": "معمّم Generalised (30% أو أكثر من المواقع)"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct — the full diagnosis reads: generalised periodontitis, Stage III, Grade C.",
+                      "ar": "صحيح — التشخيص الكامل: التهاب دواعم سن معمّم، المرحلة الثالثة، الدرجة C."
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "Molar-incisor pattern",
+                      "ar": "نمط الرحى-القاطعة Molar-incisor pattern"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "That descriptor is reserved for disease confined to first molars and incisors. His involvement is widespread.",
+                      "ar": "هذا الواصف مخصص للمرض المحصور في الرحى الأولى والقواطع. إصابته واسعة الانتشار."
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "d4",
+                "prompt": {
+                  "en": "First step of therapy?",
+                  "ar": "ما الخطوة العلاجية الأولى؟"
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "Refer straight to periodontal surgery",
+                      "ar": "إحالة مباشرة إلى جراحة اللثة"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Surgery before cause-related therapy operates on an infected, plaque-loaded field. Step 1 always comes first.",
+                      "ar": "الجراحة قبل العلاج السببي تعني العمل على حقل ملتهب ومليء باللويحة. المرحلة الأولى تأتي دائماً أولاً."
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "Step 1: behaviour change — oral hygiene instruction, risk factor control, smoking cessation support",
+                      "ar": "المرحلة الأولى: تعديل السلوك — تعليم العناية الفموية، ضبط عوامل الخطر، دعم الإقلاع عن التدخين"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct. Step 1 builds the foundation; in a Grade C smoker, cessation support is not optional — it is the treatment.",
+                      "ar": "صحيح. المرحلة الأولى تبني الأساس؛ ولدى مدخّن بالدرجة C فإن دعم الإقلاع ليس خياراً — بل هو العلاج نفسه."
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "Systemic antibiotics alone",
+                      "ar": "صادات حيوية جهازية وحدها"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Antibiotics without mechanical biofilm disruption do not work — the biofilm protects itself, and you have bred resistance for nothing.",
+                      "ar": "الصادات دون تفكيك ميكانيكي للغشاء الحيوي لا تنفع — فالغشاء يحمي نفسه، وتكون قد ولّدت مقاومة دون فائدة."
+                    }
+                  },
+                  {
+                    "id": "d",
+                    "label": {
+                      "en": "Scaling and root planing now, hygiene instruction after",
+                      "ar": "التقليح وتسوية الجذور scaling and root planing الآن، وتعليم العناية لاحقاً"
+                    },
+                    "quality": "acceptable",
+                    "feedback": {
+                      "en": "The instrumentation is right but the order is backwards — Step 2 without Step 1 relapses, because the patient goes home to the same habits.",
+                      "ar": "الأداة صحيحة لكن الترتيب معكوس — المرحلة الثانية دون الأولى تنتكس، لأن المريض يعود إلى العادات نفسها."
+                    }
+                  }
+                ]
+              }
+            ],
+            "outcome": {
+              "success": {
+                "en": "Rami leaves with a clear diagnosis — generalised periodontitis, Stage III, Grade C — a hygiene plan, and a smoking cessation referral. He books his Step 2 appointment on the way out.",
+                "ar": "يغادر رامي بتشخيص واضح — التهاب دواعم سن معمّم، المرحلة الثالثة، الدرجة C — مع خطة عناية وإحالة للإقلاع عن التدخين. ويحجز موعد المرحلة الثانية قبل خروجه."
+              },
+              "partial": {
+                "en": "You got Rami treated, but the staging notes will confuse whoever sees him next. Re-read the grading slides before Audit Day.",
+                "ar": "عالجت رامي، لكن ملاحظات التصنيف ستربك من يراه لاحقاً. راجع شرائح التدريج قبل يوم التدقيق."
+              },
+              "failure": {
+                "en": "Rami left with the wrong diagnosis on file. He will be back — and the inspector will have questions on Audit Day.",
+                "ar": "غادر رامي وفي ملفه تشخيص خاطئ. سيعود — وسيكون لدى المدقق أسئلة في يوم التدقيق."
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "med-anaphylaxis",
+      "schemaVersion": 1,
+      "track": "medical",
+      "subject": {
+        "en": "Medical Emergencies",
+        "ar": "الطوارئ الطبية"
+      },
+      "title": {
+        "en": "Anaphylaxis in the Chair",
+        "ar": "التأق على كرسي العيادة"
+      },
+      "isDemo": true,
+      "citations": [
+        "Resuscitation Council anaphylaxis algorithm (adult)",
+        "ABCDE assessment framework"
+      ],
+      "provenance": null,
+      "slides": [],
+      "studyNotes": {
+        "title": {
+          "en": "Prep: the emergency drill",
+          "ar": "التحضير: تدريب الطوارئ"
+        },
+        "intro": {
+          "en": "Nobody books an anaphylaxis. Run the drill this morning so your hands know it before your brain does.",
+          "ar": "لا أحد يحجز موعداً للتأق. تدرّب هذا الصباح لتعرف يداك ما تفعلانه قبل أن يفكر عقلك."
+        },
+        "sections": [
+          {
+            "id": "c1",
+            "heading": {
+              "en": "Recognising it",
+              "ar": "التعرّف عليه"
+            },
+            "body": {
+              "en": "Anaphylaxis is a sudden airway, breathing, or circulation problem, usually with skin changes, after exposure to a trigger. Skin signs alone are not anaphylaxis. Airway swelling, wheeze, or a dropping blood pressure are what make it anaphylaxis — and what make it kill.",
+              "ar": "التأق هو اضطراب مفاجئ في المجرى الهوائي أو التنفس أو الدوران، غالباً مع تغيّرات جلدية، بعد التعرّض لمُحسِّس. العلامات الجلدية وحدها ليست تأقاً. تورّم المجرى الهوائي أو الأزيز أو هبوط الضغط هو ما يجعله تأقاً — وما يجعله قاتلاً."
+            },
+            "linkedQuestionId": "c1q",
+            "sourceRef": {
+              "en": "Slide 6"
+            }
+          },
+          {
+            "id": "c2",
+            "heading": {
+              "en": "The dose you must never forget",
+              "ar": "الجرعة التي يجب ألا تنساها"
+            },
+            "body": {
+              "en": "Adult adrenaline for anaphylaxis: 0.5 mg of 1:1000 intramuscularly into the anterolateral thigh. That is 0.5 mL. Repeat after 5 minutes if there is no improvement. Intramuscular, not intravenous — IV adrenaline in untrained hands causes arrhythmias and deaths.",
+              "ar": "جرعة الأدرينالين للبالغ في التأق: 0.5 ملغ بتركيز 1:1000 عضلياً في الوجه الأمامي الوحشي للفخذ، أي 0.5 مل. تُكرَّر بعد 5 دقائق إن لم يتحسن. عضلياً لا وريدياً — فالأدرينالين الوريدي بأيدٍ غير مدربة يسبب اضطرابات نظم ووفيات."
+            },
+            "linkedQuestionId": "c2q",
+            "sourceRef": {
+              "en": "Slide 11"
+            }
+          },
+          {
+            "id": "c3",
+            "heading": {
+              "en": "Position matters",
+              "ar": "الوضعية مهمة"
+            },
+            "body": {
+              "en": "Lie the patient flat and raise the legs to support the circulation. If they are struggling to breathe, let them sit up. Never stand them up or walk them to another room — sudden upright posture in anaphylaxis has caused cardiac arrest within seconds.",
+              "ar": "اضجع المريض ممدداً وارفع ساقيه لدعم الدوران. وإن كان يعاني في التنفس فدعه يجلس. لا تُوقفه أبداً ولا تنقله مشياً إلى غرفة أخرى — فالانتصاب المفاجئ في التأق سبّب توقف قلب خلال ثوانٍ."
+            },
+            "linkedQuestionId": "c3q",
+            "sourceRef": {
+              "en": "Slide 15"
+            }
+          }
+        ]
+      },
+      "flashcardSourceQuestionIds": [
+        "c1q",
+        "c2q",
+        "c3q",
+        "d1",
+        "d2",
+        "d3",
+        "d4"
+      ],
+      "prep": {
+        "missionTitle": {
+          "en": "Prep: the emergency drill",
+          "ar": "التحضير: تدريب الطوارئ"
+        },
+        "briefing": {
+          "en": "Nobody books an anaphylaxis. Run the drill this morning so your hands know it before your brain does.",
+          "ar": "لا أحد يحجز موعداً للتأق. تدرّب هذا الصباح لتعرف يداك ما تفعلانه قبل أن يفكر عقلك."
+        },
+        "chunks": [
+          {
+            "id": "c1",
+            "title": {
+              "en": "Recognising it",
+              "ar": "التعرّف عليه"
+            },
+            "body": {
+              "en": "Anaphylaxis is a sudden airway, breathing, or circulation problem, usually with skin changes, after exposure to a trigger. Skin signs alone are not anaphylaxis. Airway swelling, wheeze, or a dropping blood pressure are what make it anaphylaxis — and what make it kill.",
+              "ar": "التأق هو اضطراب مفاجئ في المجرى الهوائي أو التنفس أو الدوران، غالباً مع تغيّرات جلدية، بعد التعرّض لمُحسِّس. العلامات الجلدية وحدها ليست تأقاً. تورّم المجرى الهوائي أو الأزيز أو هبوط الضغط هو ما يجعله تأقاً — وما يجعله قاتلاً."
+            },
+            "question": {
+              "id": "c1q",
+              "prompt": {
+                "en": "A patient develops an itchy rash only, with normal breathing and blood pressure. Is this anaphylaxis?",
+                "ar": "مريض ظهر لديه طفح حاكّ فقط، مع تنفس وضغط طبيعيين. هل هذا تأق؟"
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "label": {
+                    "en": "No — skin signs alone are an allergic reaction, not anaphylaxis",
+                    "ar": "لا — العلامات الجلدية وحدها تفاعل تحسسي لا تأق"
+                  },
+                  "isCorrect": true
+                },
+                {
+                  "id": "b",
+                  "label": {
+                    "en": "Yes — any allergic reaction counts",
+                    "ar": "نعم — أي تفاعل تحسسي يُحتسب"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "c",
+                  "label": {
+                    "en": "Yes, if the rash is spreading",
+                    "ar": "نعم، إذا كان الطفح ينتشر"
+                  },
+                  "isCorrect": false
+                }
+              ],
+              "explanation": {
+                "en": "Anaphylaxis requires an A, B, or C problem. Watch closely and be ready — but adrenaline is for airway, breathing, or circulation compromise.",
+                "ar": "يتطلب التأق اضطراباً في A أو B أو C. راقب عن قرب وكن مستعداً — لكن الأدرينالين مخصص لاختلال المجرى الهوائي أو التنفس أو الدوران."
+              },
+              "sourceRef": {
+                "en": "Slide 6"
+              }
+            }
+          },
+          {
+            "id": "c2",
+            "title": {
+              "en": "The dose you must never forget",
+              "ar": "الجرعة التي يجب ألا تنساها"
+            },
+            "body": {
+              "en": "Adult adrenaline for anaphylaxis: 0.5 mg of 1:1000 intramuscularly into the anterolateral thigh. That is 0.5 mL. Repeat after 5 minutes if there is no improvement. Intramuscular, not intravenous — IV adrenaline in untrained hands causes arrhythmias and deaths.",
+              "ar": "جرعة الأدرينالين للبالغ في التأق: 0.5 ملغ بتركيز 1:1000 عضلياً في الوجه الأمامي الوحشي للفخذ، أي 0.5 مل. تُكرَّر بعد 5 دقائق إن لم يتحسن. عضلياً لا وريدياً — فالأدرينالين الوريدي بأيدٍ غير مدربة يسبب اضطرابات نظم ووفيات."
+            },
+            "question": {
+              "id": "c2q",
+              "prompt": {
+                "en": "Correct adult adrenaline dose and route?",
+                "ar": "ما جرعة الأدرينالين الصحيحة للبالغ وطريق إعطائها؟"
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "label": {
+                    "en": "0.5 mg of 1:1000 intramuscular, anterolateral thigh",
+                    "ar": "0.5 mg of 1:1000 IM عضلياً في الوجه الأمامي الوحشي للفخذ"
+                  },
+                  "isCorrect": true
+                },
+                {
+                  "id": "b",
+                  "label": {
+                    "en": "1 mg of 1:10,000 intravenous",
+                    "ar": "1 ملغ 1:10000 وريدياً"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "c",
+                  "label": {
+                    "en": "0.5 mg of 1:1000 subcutaneous into the arm",
+                    "ar": "0.5 mg of 1:1000 تحت الجلد في الذراع"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "d",
+                  "label": {
+                    "en": "0.3 mg of 1:1000 intramuscular, deltoid",
+                    "ar": "0.3 ملغ 1:1000 عضلياً في الدالية"
+                  },
+                  "isCorrect": false
+                }
+              ],
+              "explanation": {
+                "en": "1:10,000 IV is the cardiac arrest dose, not the anaphylaxis dose. The thigh is chosen because absorption there is fastest.",
+                "ar": "تركيز 1:10000 وريدياً هو جرعة توقف القلب لا التأق. ويُختار الفخذ لأن الامتصاص فيه أسرع."
+              },
+              "sourceRef": {
+                "en": "Slide 11"
+              }
+            }
+          },
+          {
+            "id": "c3",
+            "title": {
+              "en": "Position matters",
+              "ar": "الوضعية مهمة"
+            },
+            "body": {
+              "en": "Lie the patient flat and raise the legs to support the circulation. If they are struggling to breathe, let them sit up. Never stand them up or walk them to another room — sudden upright posture in anaphylaxis has caused cardiac arrest within seconds.",
+              "ar": "اضجع المريض ممدداً وارفع ساقيه لدعم الدوران. وإن كان يعاني في التنفس فدعه يجلس. لا تُوقفه أبداً ولا تنقله مشياً إلى غرفة أخرى — فالانتصاب المفاجئ في التأق سبّب توقف قلب خلال ثوانٍ."
+            },
+            "question": {
+              "id": "c3q",
+              "prompt": {
+                "en": "A hypotensive anaphylaxis patient asks to walk to the recovery room. What do you do?",
+                "ar": "مريض تأق مع هبوط ضغط يطلب المشي إلى غرفة الإفاقة. ماذا تفعل؟"
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "label": {
+                    "en": "Keep them lying flat with legs raised",
+                    "ar": "أبقه مستلقياً مع رفع الساقين"
+                  },
+                  "isCorrect": true
+                },
+                {
+                  "id": "b",
+                  "label": {
+                    "en": "Support them as they walk slowly",
+                    "ar": "اسنده وهو يمشي ببطء"
+                  },
+                  "isCorrect": false
+                },
+                {
+                  "id": "c",
+                  "label": {
+                    "en": "Sit them upright in a wheelchair",
+                    "ar": "أجلسه منتصباً في كرسي متحرك"
+                  },
+                  "isCorrect": false
+                }
+              ],
+              "explanation": {
+                "en": "Standing removes the venous return keeping their pressure up. Flat with legs raised, and the room comes to the patient.",
+                "ar": "الوقوف يُفقده العود الوريدي الذي يحافظ على ضغطه. أبقه مستلقياً مع رفع الساقين، ولتأتِ الغرفة إلى المريض."
+              },
+              "sourceRef": {
+                "en": "Slide 15"
+              }
+            }
+          }
+        ]
+      },
+      "treat": {
+        "missionTitle": {
+          "en": "Treat: 11:40 emergency",
+          "ar": "العلاج: طارئ الساعة 11:40"
+        },
+        "cases": [
+          {
+            "id": "p1",
+            "patient": {
+              "name": {
+                "en": "Layla A.",
+                "ar": "ليلى أ."
+              },
+              "age": 29,
+              "avatar": "🧕"
+            },
+            "chiefComplaint": {
+              "en": "Routine restoration. Four minutes after amoxicillin prophylaxis she says her throat feels tight and she cannot get a full breath.",
+              "ar": "ترميم روتيني. بعد أربع دقائق من الوقاية بالأموكسيسيلين تقول إن حلقها يضيق ولا تستطيع أخذ نفس كامل."
+            },
+            "history": {
+              "en": "No known drug allergies documented. Otherwise healthy.",
+              "ar": "لا حساسية دوائية موثّقة. بصحة جيدة عدا ذلك."
+            },
+            "findings": [
+              {
+                "en": "Audible wheeze, hoarse voice",
+                "ar": "أزيز مسموع، بحّة في الصوت"
+              },
+              {
+                "en": "Blood pressure 82/50, pulse 128",
+                "ar": "الضغط 82/50، النبض 128"
+              },
+              {
+                "en": "Spreading urticaria on the neck and chest",
+                "ar": "شرى منتشر على العنق والصدر"
+              },
+              {
+                "en": "Oxygen saturation 91% on room air",
+                "ar": "إشباع الأكسجين 91% على هواء الغرفة"
+              }
+            ],
+            "decisions": [
+              {
+                "id": "d1",
+                "prompt": {
+                  "en": "First action?",
+                  "ar": "ما الإجراء الأول؟"
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "Stop the trigger, call for help, give IM adrenaline",
+                      "ar": "أوقف المُحسِّس، اطلب المساعدة، أعطِ الأدرينالين عضلياً IM adrenaline"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct. Airway and circulation are both compromised — adrenaline now, not after you have finished assessing.",
+                      "ar": "صحيح. المجرى الهوائي والدوران مختلّان معاً — الأدرينالين الآن، لا بعد إتمام التقييم."
+                    },
+                    "sourceRef": {
+                      "en": "Slide 11"
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "Give oral antihistamine and observe",
+                      "ar": "أعطِ مضاد هيستامين فموياً oral antihistamine وراقب"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Antihistamines do nothing for airway swelling or shock, and oral absorption in a shocked patient is unreliable. This delay is what kills.",
+                      "ar": "مضادات الهيستامين لا تفعل شيئاً لتورّم المجرى الهوائي أو الصدمة، والامتصاص الفموي لدى مريض بصدمة غير موثوق. هذا التأخير هو القاتل."
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "Take a full allergy history before treating",
+                      "ar": "خذ قصة تحسسية كاملة قبل العلاج"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "The history can wait; her airway cannot. Treat first, document after.",
+                      "ar": "القصة يمكن أن تنتظر؛ مجراها الهوائي لا يستطيع. عالج أولاً ووثّق لاحقاً."
+                    }
+                  },
+                  {
+                    "id": "d",
+                    "label": {
+                      "en": "Give high-flow oxygen and reassess in 5 minutes",
+                      "ar": "أعطِ أكسجيناً بتدفق عالٍ وأعد التقييم بعد 5 دقائق"
+                    },
+                    "quality": "acceptable",
+                    "feedback": {
+                      "en": "Oxygen is right and necessary — but it is not the first action. Adrenaline goes in first, oxygen alongside it.",
+                      "ar": "الأكسجين صحيح وضروري — لكنه ليس الإجراء الأول. الأدرينالين أولاً والأكسجين معه."
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "d2",
+                "prompt": {
+                  "en": "Draw up the adrenaline. Which is it?",
+                  "ar": "حضّر الأدرينالين. أيّها؟"
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "0.5 mL of 1:1000 IM",
+                      "ar": "0.5 mL of 1:1000 IM عضلياً"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct — 0.5 mg, anterolateral thigh, through clothing if needed.",
+                      "ar": "صحيح — 0.5 ملغ في الوجه الأمامي الوحشي للفخذ، عبر الملابس إن لزم."
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "5 mL of 1:10,000 IV",
+                      "ar": "5 mL of 1:10,000 IV وريدياً"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "That is the cardiac arrest preparation. IV adrenaline here risks a fatal arrhythmia.",
+                      "ar": "هذا تحضير توقف القلب. الأدرينالين الوريدي هنا يهدد باضطراب نظم قاتل."
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "0.5 mL of 1:1000 subcutaneously",
+                      "ar": "0.5 مل 1:1000 تحت الجلد"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Right drug, wrong route — subcutaneous absorption is too slow in a shocked patient with shut-down peripheries.",
+                      "ar": "الدواء صحيح والطريق خاطئ — الامتصاص تحت الجلد بطيء جداً لدى مريض بصدمة وأطراف منغلقة."
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "d3",
+                "prompt": {
+                  "en": "How do you position her?",
+                  "ar": "كيف تضعها؟"
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "Flat with legs raised, sitting up only if breathing worsens",
+                      "ar": "مستلقية مع رفع الساقين، وتجلس فقط إن ساء التنفس"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct. Hypotension favours legs up; her airway symptoms mean you must be ready to let her sit.",
+                      "ar": "صحيح. هبوط الضغط يستدعي رفع الساقين؛ وأعراض مجراها الهوائي تعني استعدادك لإجلاسها."
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "Walk her to the recovery room to lie down",
+                      "ar": "امشِ بها إلى غرفة الإفاقة لتستلقي"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Never. Sudden upright posture in anaphylaxis has caused arrest within seconds.",
+                      "ar": "أبداً. الانتصاب المفاجئ في التأق سبّب توقف قلب خلال ثوانٍ."
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "Fully upright in the dental chair",
+                      "ar": "منتصبة تماماً على كرسي العيادة"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Upright drops her venous return further when she is already at 82/50.",
+                      "ar": "الانتصاب يخفض عودها الوريدي أكثر وضغطها أصلاً 82/50."
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "d4",
+                "prompt": {
+                  "en": "Five minutes on: still wheezing, BP 84/52. Next?",
+                  "ar": "بعد خمس دقائق: أزيز مستمر، الضغط 84/52. ماذا بعد؟"
+                },
+                "options": [
+                  {
+                    "id": "a",
+                    "label": {
+                      "en": "Repeat IM adrenaline 0.5 mg",
+                      "ar": "كرر الأدرينالين عضلياً — repeat IM adrenaline 0.5 mg"
+                    },
+                    "quality": "best",
+                    "feedback": {
+                      "en": "Correct. No improvement at 5 minutes means a repeat dose. Roughly a third of cases need more than one.",
+                      "ar": "صحيح. عدم التحسن بعد 5 دقائق يعني جرعة مكررة. نحو ثلث الحالات تحتاج أكثر من جرعة."
+                    }
+                  },
+                  {
+                    "id": "b",
+                    "label": {
+                      "en": "Wait another 10 minutes before repeating",
+                      "ar": "انتظر 10 دقائق أخرى قبل التكرار"
+                    },
+                    "quality": "poor",
+                    "feedback": {
+                      "en": "Too long. The repeat interval is 5 minutes when there has been no response.",
+                      "ar": "وقت طويل جداً. فاصل التكرار 5 دقائق عند غياب الاستجابة."
+                    }
+                  },
+                  {
+                    "id": "c",
+                    "label": {
+                      "en": "Give IV fluids only and hold further adrenaline",
+                      "ar": "أعطِ سوائل وريدية فقط وأوقف الأدرينالين"
+                    },
+                    "quality": "acceptable",
+                    "feedback": {
+                      "en": "Fluids are genuinely indicated for her hypotension — but they go alongside the repeat adrenaline, not instead of it.",
+                      "ar": "السوائل مستطبّة فعلاً لهبوط ضغطها — لكنها تُعطى مع الجرعة المكررة لا بدلاً منها."
+                    }
+                  }
+                ]
+              }
+            ],
+            "outcome": {
+              "success": {
+                "en": "Layla stabilises before the ambulance arrives. Amoxicillin allergy is now on her file in red, and the crew take her in for observation — biphasic reactions are real.",
+                "ar": "تستقر ليلى قبل وصول الإسعاف. حساسية الأموكسيسيلين مسجّلة الآن بالأحمر في ملفها، ويأخذها الطاقم للمراقبة — فالتفاعلات ثنائية الطور حقيقية."
+              },
+              "partial": {
+                "en": "She made it, but minutes were lost that you will not get back in a real chair. Run the drill again.",
+                "ar": "نجت، لكن ضاعت دقائق لن تستعيدها على كرسي حقيقي. أعد التدريب."
+              },
+              "failure": {
+                "en": "The ambulance crew took over a patient who should have been stabilising by then. This is the case the inspector opens first on Audit Day.",
+                "ar": "استلم طاقم الإسعاف مريضة كان يجب أن تكون مستقرة. هذه هي الحالة التي يفتحها المدقق أولاً في يوم التدقيق."
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
