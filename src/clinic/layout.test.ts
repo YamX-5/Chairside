@@ -282,6 +282,30 @@ facesToward('stool', { x: CHAIR_POS[0], z: CHAIR_POS[2] }, 'stool -> patient')
   assert.equal(CHECKED_FACING.size, SEATS.length, 'a facing check outlived its seat')
 }
 
+// ---------------------------------------------------------------------------
+// You can stand up from every seat
+// ---------------------------------------------------------------------------
+//
+// A seat's EYE position is where the camera is parked while sitting, and the
+// player is released there when they stand. If it is inside a collider they are
+// released INTO furniture — and stepPlayer used to refuse every direction from
+// inside a box, so that was a permanent trap needing a page reload.
+//
+// The operator's stool was exactly this: its eye sat inside the patient chair's
+// collider, because that collider was the chair's whole silhouette rather than
+// its base. Only `s.approach` was ever checked, which is the spot you walk to
+// BEFORE sitting — not where you end up.
+{
+  for (const s of SEATS) {
+    assert.equal(
+      blocked(s.eye.x, s.eye.z, PLAYER_RADIUS),
+      false,
+      `seat '${s.id}' seats the camera at (${s.eye.x.toFixed(2)}, ${s.eye.z.toFixed(2)}), ` +
+        `inside a collider — standing up releases the player into furniture`,
+    )
+  }
+}
+
 // Every seat must be reachable: you have to be able to stand at its approach
 // point, and that point has to actually trigger the seat.
 for (const s of SEATS) {

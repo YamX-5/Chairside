@@ -63,6 +63,27 @@ export const CHAIR_FACING = 0
 // not simply be scaled across.
 export const SEAT_LOCAL: [number, number, number] = [-0.079, 0.37, 0.215]
 
+/**
+ * The operator's stool: ONE position, used by the prop, the seat and the tests.
+ *
+ * It was three different numbers hanging off CHAIR_POS — the prop at -0.85, the
+ * seated camera at -0.72, the walk-to spot at -1.00 — so the camera sat 130 mm
+ * in front of the stool it was supposedly on, and nothing compared them. This
+ * file's own header warns about exactly that pattern.
+ *
+ * 0.95 m from the chair's centre puts the stool clear of the chair collider once
+ * inflated by PLAYER_RADIUS. Closer than that and the seated camera is inside
+ * the chair's box, which is where the player was being released on standing up.
+ * Legs still go under the chair — the collider is its base, not its silhouette.
+ */
+export const STOOL_OFFSET_X = 0.95
+export const STOOL_POS: [number, number, number] = [
+  CHAIR_POS[0] - STOOL_OFFSET_X,
+  0,
+  CHAIR_POS[2] - 0.05,
+]
+export const STOOL_YAW = -Math.PI / 2
+
 /** Where the patient sits, in world space. Derived. */
 export const SEAT_WORLD: [number, number, number] = [
   CHAIR_POS[0] + SEAT_LOCAL[0],
@@ -71,40 +92,31 @@ export const SEAT_WORLD: [number, number, number] = [
 ]
 
 /**
- * The chair's footprint, as half-extents.
+ * The unit's FLOOR FOOTPRINT — what you actually walk into.
  *
- * Measured base plate is x[-0.35, +0.48], z[-0.35, +0.48]; the full silhouette
- * including the reclined back and leg rest reaches x[-0.64, +0.62]. This sits
- * between the two ON PURPOSE.
+ * Measured with scripts/probe_unit_footprint.mts: only two nodes of the twelve
+ * reach the floor, Object_7 and Object_8, together spanning model-local
+ * x -0.519..0.090 and z -0.571..0.620. Everything else starts at y 0.17 or
+ * higher and overhangs.
  *
- * Using the full silhouette would push the collider's near edge to x 0.96, and
- * the operator stands at x 0.65 — plus PLAYER_RADIUS that is 0.97, a one
- * centimetre overlap, and the treat trigger becomes unreachable. That exact
- * failure has now happened three times in this file (the desk trigger, the
- * waiting bench, the glove box), so it gets designed out rather than rediscovered.
+ * It was a symmetric +/-0.65 x +/-0.62 — the whole bounding box. The comment
+ * claimed it counted "only geometry BELOW 1.2 m", but that filter excludes
+ * nothing here: the chair body starts at y 0.174, so the box was the silhouette
+ * after all.
  *
- * The overhanging parts are above knee height anyway; you can stand under them.
+ * THE OVERHANG IS DELIBERATELY NOT INCLUDED, and that is clinical rather than a
+ * shortcut: an operator's legs go UNDER the patient chair. With the silhouette
+ * as the collider, inflated by PLAYER_RADIUS, the operator's own stool sat
+ * inside it — you could not stand where the job is done. The seat check in
+ * layout.test.ts now asserts that directly.
+ *
+ * Asymmetric because the unit is: its base sits toward the patient's left, not
+ * centred under CHAIR_POS.
  */
-// Measured off the exported unit, counting only geometry BELOW 1.2 m — you walk
-// under the operating light arm, so including it would wall off a square metre
-// of floor that is actually clear.
-const CHAIR_HALF_X = 0.65
-const CHAIR_MIN_Z = -0.62
+const CHAIR_MIN_X = -0.519
+const CHAIR_MAX_X = 0.09
+const CHAIR_MIN_Z = -0.571
 const CHAIR_MAX_Z = 0.62
-
-function boxAround(
-  pos: [number, number, number],
-  halfX: number,
-  minZ: number,
-  maxZ: number,
-): Box {
-  return {
-    minX: pos[0] - halfX,
-    maxX: pos[0] + halfX,
-    minZ: pos[2] + minZ,
-    maxZ: pos[2] + maxZ,
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Measured constants — declared BEFORE anything derived from them.
@@ -355,7 +367,13 @@ export const COLLIDERS: Box[] = [
 
   // Derived from CHAIR_POS. Deliberately tight — an oversized chair collider
   // plus the player radius is what stopped anyone getting near the patient.
-  boxAround(CHAIR_POS, CHAIR_HALF_X, CHAIR_MIN_Z, CHAIR_MAX_Z),
+  // Asymmetric in X: the unit's base is not centred under CHAIR_POS.
+  {
+    minX: CHAIR_POS[0] + CHAIR_MIN_X,
+    maxX: CHAIR_POS[0] + CHAIR_MAX_X,
+    minZ: CHAIR_POS[2] + CHAIR_MIN_Z,
+    maxZ: CHAIR_POS[2] + CHAIR_MAX_Z,
+  },
 
   // The desk. office_desk.glb is 1.316 x 0.564 and yawed a quarter turn, so its
   // width runs along Z and its depth along X.
@@ -748,7 +766,7 @@ export const PROPS: Prop[] = [
   // is what made the room look random.
 
   // --- the operatory ---------------------------------------------------------
-  { id: 'doctors_chair', pos: [CHAIR_POS[0] - 0.85, 0, CHAIR_POS[2] - 0.05], yaw: -Math.PI / 2 },
+  { id: 'doctors_chair', pos: STOOL_POS, yaw: STOOL_YAW },
 
   // --- back wall: the sterilising run ----------------------------------------
   // 1.66 x 0.37 x 0.90 m, spanning x -0.53..1.13. Everything below sits ON it,
@@ -854,14 +872,14 @@ export const SEATS: Seat[] = [
   {
     id: 'stool',
     label: "the operator's stool",
-    approach: { x: CHAIR_POS[0] - 1.0, z: CHAIR_POS[2] - 0.05 },
+    approach: { x: STOOL_POS[0] - 0.1, z: STOOL_POS[2] },
     // Beside the chair, turned toward the patient — who is at +X from here, so
     // forward.x must be positive, which needs sin(yaw) < 0.
     // Seat 0.54 (see PROP_SCALES.doctors_chair) plus 0.77 sitting eye height —
     // 50th-percentile adult, eye above the seat surface. These two numbers must
     // move together: the eye was 1.18 against a cushion rendered at 0.85, so the
     // camera sat 310 mm below the seat it was supposed to be on.
-    eye: { x: CHAIR_POS[0] - 0.72, y: 1.31, z: CHAIR_POS[2] - 0.05 },
+    eye: { x: STOOL_POS[0], y: 1.31, z: STOOL_POS[2] },
     yaw: -Math.PI / 2,
   },
 ]

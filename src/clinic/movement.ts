@@ -65,11 +65,25 @@ export function stepPlayer(
   const step = opts.speed * delta
   const out = { x: pos.x, z: pos.z }
 
+  // ALREADY INSIDE SOMETHING? Then move freely until you are out.
+  //
+  // This function only ever tested the DESTINATION, never the current position,
+  // which made any point inside a collider an absorbing state: every candidate
+  // is blocked, so every direction is refused and the player is pinned forever.
+  // Verified from the stool's own seated eye position — all sixteen headings
+  // rejected. It is reachable in ordinary play because the seated camera is
+  // parked inside the chair's box and the player is released there on standing.
+  //
+  // Letting a trapped player walk out is strictly better than sealing them in:
+  // the worst case is briefly clipping through furniture you were already
+  // inside, and the alternative is reloading the page.
+  const trapped = blocked(pos.x, pos.z, opts.radius)
+
   const wantX = clamp(pos.x + mx * step, -opts.bound, opts.bound)
-  if (!blocked(wantX, out.z, opts.radius)) out.x = wantX
+  if (trapped || !blocked(wantX, out.z, opts.radius)) out.x = wantX
 
   const wantZ = clamp(pos.z + mz * step, -opts.bound, opts.bound)
-  if (!blocked(out.x, wantZ, opts.radius)) out.z = wantZ
+  if (trapped || !blocked(out.x, wantZ, opts.radius)) out.z = wantZ
 
   return out
 }

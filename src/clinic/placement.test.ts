@@ -5,6 +5,7 @@ import {
   CABINET_POS,
   CABINET_SHELF,
   CHAIR_POS,
+  STOOL_POS,
   DESK_POS,
   DESK_TOP_Y,
   DESK_YAW,
@@ -78,7 +79,7 @@ function placed(
   assert.ok(stoolGlb, 'doctors_chair.glb has no geometry')
   const stool = placed(
     stoolGlb!,
-    [CHAIR_POS[0] - 0.85, 0, CHAIR_POS[2] - 0.05],
+    STOOL_POS,
     -Math.PI / 2,
   )
 

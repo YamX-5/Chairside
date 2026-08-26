@@ -7,7 +7,7 @@ import {
   stepPlayer,
 } from './movement'
 import { BOUND, PLAYER_RADIUS, WALK_SPEED } from './theme3d'
-import { blocked, SPAWN } from './layout'
+import { blocked, CHAIR_POS, COLLIDERS, SPAWN } from './layout'
 
 const OPTS = { speed: WALK_SPEED, radius: PLAYER_RADIUS, bound: BOUND }
 const near = (a: number, b: number, eps = 1e-6) => Math.abs(a - b) < eps
@@ -150,10 +150,51 @@ for (const yaw of [0, 0.7, Math.PI / 2, 2.4, Math.PI, -1.1]) {
 }
 
 // Walking straight into the dental chair stops short of it.
+//
+// The lane and the stop distance are DERIVED from the chair's collider, not
+// typed. They used to be literals chosen for a collider that was the unit's
+// whole silhouette; when it was corrected to the base the unit actually stands
+// on, x = 1.6 stopped being in front of the chair at all and the player simply
+// walked past — the test failed for a change that was right.
 {
-  let p = { x: 1.6, z: 2.5 }
+  const chair = COLLIDERS.find(
+    (c) => CHAIR_POS[0] >= c.minX && CHAIR_POS[0] <= c.maxX &&
+      CHAIR_POS[2] >= c.minZ && CHAIR_POS[2] <= c.maxZ,
+  )
+  assert.ok(chair, 'no collider contains CHAIR_POS')
+  const lane = (chair!.minX + chair!.maxX) / 2
+  const stopsAt = chair!.maxZ + PLAYER_RADIUS
+
+  let p = { x: lane, z: 2.5 }
   for (let i = 0; i < 120; i++) p = stepPlayer(p, 0, { x: 0, z: 1 }, 0.05, OPTS)
-  assert.ok(p.z > 0.6, `blocked by the chair, stopped at z=${p.z.toFixed(2)}`)
+  assert.ok(
+    p.z > stopsAt - 1e-6,
+    `walking down x=${lane.toFixed(2)} should stop at z=${stopsAt.toFixed(2)}, ` +
+      `got ${p.z.toFixed(2)} — the chair did not block`,
+  )
+}
+
+// Being INSIDE a collider must always be escapable.
+//
+// stepPlayer only ever tested the destination, so any point inside a box
+// rejected every direction and pinned the player there permanently. It is
+// reachable in normal play: the seated camera is parked inside the chair's box
+// and the player is released there when they stand up.
+{
+  const chair = COLLIDERS.find(
+    (c) => CHAIR_POS[0] >= c.minX && CHAIR_POS[0] <= c.maxX,
+  )!
+  const inside = { x: (chair.minX + chair.maxX) / 2, z: (chair.minZ + chair.maxZ) / 2 }
+  assert.equal(blocked(inside.x, inside.z, PLAYER_RADIUS), true, 'test point is not inside')
+
+  let escaped = false
+  for (let dir = 0; dir < 8 && !escaped; dir++) {
+    const yaw = (dir / 8) * Math.PI * 2
+    let p = { ...inside }
+    for (let i = 0; i < 200; i++) p = stepPlayer(p, yaw, { x: 0, z: 1 }, 0.05, OPTS)
+    escaped = !blocked(p.x, p.z, PLAYER_RADIUS)
+  }
+  assert.ok(escaped, 'trapped inside a collider — no direction leads out')
 }
 
 // Approaching furniture at an angle slides along it instead of sticking dead.
