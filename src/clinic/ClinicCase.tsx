@@ -44,6 +44,7 @@ import { DURATION } from './reaction'
 import { attachKeyboard, isTouchDevice, resetInput } from './input'
 import {
   CABINET_DOOR_IDS,
+  INSTRUMENT_DRAWER,
   DRAWER_PROMPT_OPENS,
   LAPTOP,
   SCREEN_ANCHOR,
@@ -542,6 +543,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             onPick={setHeldId}
             enabled={planned && phase === 'deciding'}
             closetOpen={CABINET_DOOR_IDS.some((id) => openIds.has(id))}
+            drawerOpen={openIds.has(INSTRUMENT_DRAWER)}
           />
         )}
 
@@ -858,7 +860,11 @@ const S: Record<string, CSSProperties> = {
   cardTag: { fontSize: 10, color: '#a2917a', textTransform: 'uppercase', letterSpacing: '.04em' },
   again: { padding: 10, borderRadius: 9, border: 0, background: '#f4ece0', color: '#2a2015', fontWeight: 700, cursor: 'pointer', font: 'inherit', marginBlockStart: 4 },
   holding: {
-    position: 'absolute', insetBlockEnd: 54, insetInlineEnd: 18, zIndex: 8,
+    // Clears the touch interact button, which is also bottom-right and shows
+    // the current prompt. At 54 the two stacked on top of each other — "Leave
+    // the clinic" rendered straight through the held-instrument card, so
+    // neither could be read or pressed.
+    position: 'absolute', insetBlockEnd: 132, insetInlineEnd: 18, zIndex: 8,
     display: 'grid', gap: 3, justifyItems: 'end', textAlign: 'end',
     padding: '9px 12px', borderRadius: 11, background: 'rgba(22,18,12,.82)',
     color: '#f4ece0', font: '13px/1.4 system-ui', maxInlineSize: 240,

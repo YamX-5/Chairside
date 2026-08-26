@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import {
   CLOSET_INSTRUMENTS,
+  DRAWER_INSTRUMENTS,
   SHELF_INSTRUMENTS,
+  type Instrument,
+  type Storage,
   expectedInstrumentFor,
   INSTRUMENT_BY_ID,
   INSTRUMENTS,
@@ -53,11 +56,15 @@ import type { CommitTriad } from '../ingest/channels'
   // accepted it, `SHELF_INSTRUMENTS` collected it, and the assertion still said
   // it could never be picked up. Derive the truth from the same place the
   // renderer reads it from.
-  const buckets = {
+  // Exhaustive by TYPE: adding a Storage variant without a bucket here is a
+  // compile error, not a silent gap. That is deliberate — it caught 'drawer'
+  // the moment it was added.
+  const buckets: Record<Storage, readonly Instrument[]> = {
     tray: TRAY_INSTRUMENTS,
     closet: CLOSET_INSTRUMENTS,
+    drawer: DRAWER_INSTRUMENTS,
     shelf: SHELF_INSTRUMENTS,
-  } as const
+  }
   for (const i of INSTRUMENTS) {
     const bucket = buckets[i.storage]
     assert.ok(

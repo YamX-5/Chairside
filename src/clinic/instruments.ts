@@ -29,6 +29,16 @@ export type Storage =
   /** Behind the cabinet door. Has to be opened before it can be taken. */
   | 'closet'
   /**
+   * In a drawer under the sterilising bench, which is where clinical kit
+   * actually lives between cases.
+   *
+   * The glass cabinet had been doing this job, which put the periodontal probe
+   * on the same shelf as the axe — a joke item and three real instruments
+   * behind one door. Separating them means the cabinet can be what it is for:
+   * one deliberate, slightly ridiculous decision.
+   */
+  | 'drawer'
+  /**
    * Standing on the wall shelf by the door, on its charging cradle.
    *
    * A portable X-ray is not tray kit and it is not locked away -- it sits out
@@ -86,9 +96,9 @@ export const INSTRUMENTS: Instrument[] = [
   { id: 'handpiece', node: 'Handpiece', label: 'Slow handpiece', use: 'Remove caries, prepare the tooth', storage: 'tray' },
 
   // Fetched from the cabinet when the plan calls for them.
-  { id: 'perioProbe', node: 'PerioProbe', label: 'Periodontal probe', use: 'Measure pocket depths', storage: 'closet' },
-  { id: 'scaler', node: 'Scaler', label: 'Scaler', use: 'Remove calculus above and below the gum', storage: 'closet' },
-  { id: 'forceps', node: 'Forceps', label: 'Extraction forceps', use: 'Remove a tooth. Irreversible.', storage: 'closet' },
+  { id: 'perioProbe', node: 'PerioProbe', label: 'Periodontal probe', use: 'Measure pocket depths', storage: 'drawer' },
+  { id: 'scaler', node: 'Scaler', label: 'Scaler', use: 'Remove calculus above and below the gum', storage: 'drawer' },
+  { id: 'forceps', node: 'Forceps', label: 'Extraction forceps', use: 'Remove a tooth. Irreversible.', storage: 'drawer' },
   { id: 'axe', node: 'Axe', label: 'Axe', use: 'No.', absurd: true, storage: 'closet' },
 
   // On its cradle on the wall shelf. Diagnostic, not operative -- it is the one
@@ -107,6 +117,7 @@ export const INSTRUMENT_BY_ID = new Map(INSTRUMENTS.map((i) => [i.id, i]))
 
 export const TRAY_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'tray')
 export const CLOSET_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'closet')
+export const DRAWER_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'drawer')
 export const SHELF_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'shelf')
 
 /**

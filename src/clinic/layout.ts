@@ -601,8 +601,21 @@ export function openableId(o: Openable): string {
 
 export const OPENABLES: Openable[] = [
   // --- the sterilisation station -------------------------------------------
-  // The one genuine drawer front, directly in front of the 'drawer' prompt.
+  // Three drawers, which is every one the asset actually has.
+  //
+  // Found with scripts/probe_station_nodes.mts, which lists each node's box and
+  // separates FRONTS from carcasses by depth. Most of the drawer look on this
+  // run is moulded into the carcass — those nodes are 0.2-0.5 m deep and cannot
+  // be pulled out no matter what the layout claims. Only these three are thin,
+  // wide panels sitting on the front face.
+  //
+  // The two Material_005 ones are unhelpfully named but are unmistakably drawer
+  // fronts: 17 mm deep, 111 mm tall, stacked in the same 0.47 m column at
+  // x 0.974..1.447 on the +Z face. Only Drawer_00 was ever hooked up, which is
+  // why "the drawers are not functional at all".
   { prop: 'sterilization_centre', nodes: ['Drawer_00'], kind: 'drawer', travel: 0.32, section: 'left' },
+  { prop: 'sterilization_centre', nodes: ['Material_005-material'], kind: 'drawer', travel: 0.26, section: 'mid' },
+  { prop: 'sterilization_centre', nodes: ['Material_005-material.001'], kind: 'drawer', travel: 0.26, section: 'mid' },
 
   // Upper glazed doors, left to right along the run.
   { prop: 'sterilization_centre', nodes: ['Door_00'], kind: 'door', hinge: 'left', travel: DOOR_SWING, section: 'left' },
@@ -644,6 +657,31 @@ export const OPENABLES: Openable[] = [
  * looks like. Everything else on the run is opened by clicking it.
  */
 export const DRAWER_PROMPT_OPENS = 'Drawer_00'
+
+/**
+ * The drawer the clinical instruments live in, and where they lie inside it.
+ *
+ * Measured off the front panel with scripts/probe_station_nodes.mts:
+ * `Material_005-material` spans x 0.974..1.447, y 0.452..0.564, and sits on the
+ * station's +Z face at z 0.382..0.400 in the prop's own frame. The station is
+ * placed at yaw 0, so those are world x and y directly, and z only needs the
+ * prop's origin added.
+ *
+ * The instruments sit where the drawer's floor ends up once it is pulled out —
+ * origin + the front's z + most of the 0.26 m of travel. Like the cabinet's
+ * shelf they render only while it is open and do not slide with it; matching
+ * the animation frame by frame would mean moving them into Openables, and a
+ * 0.42 s discrepancy on opening is not worth that.
+ */
+export const INSTRUMENT_DRAWER = 'Material_005-material'
+export const DRAWER_SHELF = {
+  x: (0.974 + 1.447) / 2,
+  y: 0.5,
+  z: STATION_ORIGIN_Z + 0.39 + 0.18,
+  yaw: 0,
+  /** Usable run along the drawer, in metres. */
+  span: 1.447 - 0.974 - 0.08,
+}
 
 /**
  * The sterilisation station's worktop height — the surface things stand ON.

@@ -3,10 +3,11 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Group, Object3D, Quaternion, Vector3 } from 'three'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
-import { BRACKET_TRAY, CABINET_SHELF, XRAY_DOCK } from './layout'
+import { BRACKET_TRAY, CABINET_SHELF, DRAWER_SHELF, XRAY_DOCK } from './layout'
 import { GRIP_TARGET, gripQuaternion } from './handsRig'
 import {
   CLOSET_INSTRUMENTS,
+  DRAWER_INSTRUMENTS,
   INSTRUMENTS,
   SHELF_INSTRUMENTS,
   TRAY_INSTRUMENTS,
@@ -151,6 +152,13 @@ interface Props {
    * this component only reads the resulting state.
    */
   closetOpen: boolean
+  /**
+   * The instrument drawer is pulled out, so its contents are reachable.
+   *
+   * Same shape as closetOpen and for the same reason: Openables owns the click
+   * that works the drawer, and this component only reads the result.
+   */
+  drawerOpen: boolean
 }
 
 export function InstrumentTray({
@@ -158,6 +166,7 @@ export function InstrumentTray({
   onPick,
   enabled,
   closetOpen,
+  drawerOpen,
 }: Props) {
   const gltf = useOptionalGLTF(`${BASE}models/instruments.glb`)
 
@@ -242,6 +251,7 @@ export function InstrumentTray({
 
   const trayX = trayLayout(TRAY_INSTRUMENTS.length)
   const closetX = trayLayout(CLOSET_INSTRUMENTS.length, 0.09)
+  const drawerX = trayLayout(DRAWER_INSTRUMENTS.length, 0.11)
 
   return (
     <>
@@ -289,6 +299,30 @@ export function InstrumentTray({
                 key={inst.id}
                 inst={inst}
                 x={closetX[i]}
+                node={heldId === inst.id ? undefined : nodes.get(inst.id)}
+                enabled={enabled}
+                hovered={hover === inst.id}
+                onHover={setHover}
+                onPick={onPick}
+              />
+            ))}
+          </group>
+        )}
+      </group>
+
+      {/* ------------------------------------------- the bench drawer -----
+          Where clinical kit actually lives between cases. It used to share the
+          glass cabinet with the axe, which made the cabinet a junk drawer and
+          the axe just the ninth thing in a row. Now the cabinet holds one
+          absurd decision and the drawer holds the real instruments. */}
+      <group position={[DRAWER_SHELF.x, DRAWER_SHELF.y, DRAWER_SHELF.z]}>
+        {drawerOpen && (
+          <group>
+            {DRAWER_INSTRUMENTS.map((inst, i) => (
+              <Pickable
+                key={inst.id}
+                inst={inst}
+                x={drawerX[i]}
                 node={heldId === inst.id ? undefined : nodes.get(inst.id)}
                 enabled={enabled}
                 hovered={hover === inst.id}
