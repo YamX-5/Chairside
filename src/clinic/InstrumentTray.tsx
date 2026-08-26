@@ -4,6 +4,7 @@ import { Group, Object3D, Quaternion, Vector3 } from 'three'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
 import { BRACKET_TRAY, CABINET_SHELF, XRAY_DOCK } from './layout'
+import { GRIP_TARGET, gripQuaternion } from './handsRig'
 import {
   CLOSET_INSTRUMENTS,
   INSTRUMENTS,
@@ -45,8 +46,8 @@ const TRAY: [number, number, number] = [BRACKET_TRAY.x, BRACKET_TRAY.y + 0.01, B
 /** The glass cabinet's middle shelf, measured off closet.glb. */
 const CLOSET: [number, number, number] = [CABINET_SHELF.x, CABINET_SHELF.y, CABINET_SHELF.z]
 
-/** Where a held instrument sits relative to the camera: low right, tip forward. */
-const HOLD_OFFSET = new Vector3(0.19, -0.20, -0.34)
+/** Turns an instrument's local +Z onto the direction the fingers point. */
+const GRIP_ROT = gripQuaternion()
 
 const camPos = new Vector3()
 const camQuat = new Quaternion()
@@ -226,10 +227,14 @@ export function InstrumentTray({
     // both write camera transforms, and parenting would fight them.
     camera.getWorldPosition(camPos)
     camera.getWorldQuaternion(camQuat)
-    held.copy(HOLD_OFFSET).applyQuaternion(camQuat)
+    // IN THE HAND, not merely near it. GRIP_TARGET and the aim both come from
+    // handsRig, so the instrument sits where the fingers close and points where
+    // they point. This used to be its own camera-space offset that happened to
+    // land beside the wrist — the tool floated next to the hand and the fingers
+    // gripped empty air.
+    held.copy(GRIP_TARGET).applyQuaternion(camQuat)
     g.position.copy(camPos).add(held)
-    g.quaternion.copy(camQuat)
-    g.rotateX(-0.35)
+    g.quaternion.copy(camQuat).multiply(GRIP_ROT)
   })
 
   if (!nodes) return null

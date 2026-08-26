@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { SkeletonUtils } from 'three-stdlib'
 import {
   FINGER_DIR,
+  HAND_LENGTH,
   WRIST_TARGET,
   collectJoints,
   handScale,
@@ -96,10 +97,19 @@ check('the hand can be measured, and is scaled to a real one', () => {
     measured! > 0.001 && measured! < 10,
     `implausible measurement ${measured} m`,
   )
+  // Derived from the constant, not a restatement of it. Hardcoding 185 here
+  // meant tuning the hand size failed a test that was only ever meant to catch
+  // the scale being IGNORED.
   const rendered = measured! * scale
   assert.ok(
-    Math.abs(rendered - 0.185) < 1e-6,
-    `hand renders at ${(rendered * 1000).toFixed(1)} mm, expected 185 mm`,
+    Math.abs(rendered - HAND_LENGTH) < 1e-6,
+    `hand renders at ${(rendered * 1000).toFixed(1)} mm, ` +
+      `expected ${HAND_LENGTH * 1000} mm`,
+  )
+  // It must still be a plausible hand, so a typo in HAND_LENGTH is caught.
+  assert.ok(
+    HAND_LENGTH > 0.12 && HAND_LENGTH < 0.21,
+    `HAND_LENGTH is ${HAND_LENGTH} m — not a hand`,
   )
   assert.notEqual(scale, 1, 'scale fell back to 1 — the measurement was ignored')
 })

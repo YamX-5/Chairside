@@ -14,7 +14,7 @@ import { boneSide, parseFingerBone } from './fingerBones'
  * Adult hand length, wrist to the tip of the middle finger. 50th-percentile male
  * is 189 mm and female 172 mm; 185 mm reads as an adult without being either.
  */
-export const HAND_LENGTH = 0.185
+export const HAND_LENGTH = 0.145
 
 /**
  * How far each joint of a finger closes when you grip, as a fraction of a full
@@ -156,21 +156,70 @@ export function handScale(root: Object3D): { scale: number; measured: number | n
  * Hands rest a little over a quarter of a metre below eye level and about as far
  * in front — close enough to read as yours, far enough not to fill the view.
  */
-export const WRIST_TARGET = new Vector3(0.17, -0.26, -0.32)
+export const WRIST_TARGET = new Vector3(0.265, -0.255, -0.40)
 
 /**
  * Which way the fingers point in camera space: mostly forward, angled down and
  * slightly inward, as a hand does when held ready in front of you. Normalised on
  * use, so these are proportions rather than a unit vector.
  */
-export const FINGER_DIR = new Vector3(-0.26, -0.34, -0.9)
+export const FINGER_DIR = new Vector3(-0.34, -0.26, -0.90)
 
 /**
  * Rotation about the finger axis, which decides where the palm faces. Aiming the
  * fingers fixes their direction but leaves the roll around that axis free, so
  * this is the one number here that is a judgement rather than a measurement.
  */
-export const PALM_ROLL = 0.55
+export const PALM_ROLL = 0.55 + Math.PI
+
+/**
+ * Which way a knuckle bends, in the bone's own space.
+ *
+ * MEASURED, NOT ASSUMED. scripts/bl_hands_glove.py poses the fingers about every
+ * axis in turn and keeps whichever actually folds the fingertips toward the
+ * wrist. It is Z- for this asset. Assuming an axis is how the cabinet doors
+ * ended up swinging through a wall.
+ */
+export const CURL_AXIS = new Vector3(0, 0, -1)
+
+/**
+ * How bent the fingers are when you are holding nothing.
+ *
+ * A hand at rest is NOT flat. Left at zero the model's own rest pose shows
+ * through — fingers splayed open like a starfish, which is how a hand is
+ * modelled for rigging and not how one ever looks on a person. Everything else
+ * about the pose can be right and it will still read as a mannequin.
+ */
+export const REST_CURL = 0.36
+
+/**
+ * Where a HELD instrument's grip sits, in camera space — inside the right hand.
+ *
+ * DERIVED from the hand, not typed alongside it. The held instrument used to
+ * have its own camera-space constant (0.19, -0.20, -0.34) sitting next to the
+ * wrist's (0.17, -0.26, -0.32): two numbers describing the same thing, agreeing
+ * by luck and drifting the moment either moved. The instrument floated NEAR the
+ * hand rather than in it, and the fingers closed on air beside it.
+ *
+ * 55 mm from the wrist along the fingers is where a pen-grip instrument is
+ * actually held — the web between thumb and index, not the palm.
+ */
+export const GRIP_TARGET = WRIST_TARGET.clone().add(
+  FINGER_DIR.clone().normalize().multiplyScalar(0.055),
+)
+
+/**
+ * How to turn an instrument so it lies along the fingers.
+ *
+ * Every instrument in instruments.glb runs along its LOCAL +Z from the grip, so
+ * aiming that axis down FINGER_DIR points the working tip where the hand points.
+ */
+export function gripQuaternion(): Quaternion {
+  return new Quaternion().setFromUnitVectors(
+    new Vector3(0, 0, 1),
+    FINGER_DIR.clone().normalize(),
+  )
+}
 
 export interface Placement {
   position: Vector3

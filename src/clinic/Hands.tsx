@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three'
+import { Group, Mesh, MeshStandardMaterial, Object3D } from 'three'
 import { SkeletonUtils } from 'three-stdlib'
 import { C } from './theme3d'
-import { collectJoints, isCuff, isPair, placeHand } from './handsRig'
+import { CURL_AXIS, REST_CURL, collectJoints, isCuff, isPair, placeHand } from './handsRig'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { moveInput } from './input'
 
@@ -42,16 +42,6 @@ import { moveInput } from './input'
  */
 
 const BASE = import.meta.env.BASE_URL
-
-/**
- * Which way a knuckle bends, in the bone's own space.
- *
- * MEASURED, NOT ASSUMED. scripts/bl_hands_glove.py poses the fingers about each
- * axis in turn and keeps whichever actually folds the fingertips toward the
- * wrist, then prints the answer. It is Z- for this asset. Assuming an axis is
- * how the cabinet doors ended up swinging through a wall.
- */
-const CURL_AXIS = new Vector3(0, 0, -1)
 
 export function Hands({
   gloved = true,
@@ -189,7 +179,8 @@ export function Hands({
       // The index lifts when reaching; the others barely move.
       const lift = j.finger === 0 ? reach.current * 0.5 : reach.current * 0.08
 
-      const close = grip.current * j.curl * 1.5 + (idle + walk) * j.curl - lift * j.curl
+      const close =
+        (REST_CURL + grip.current * 1.5) * j.curl + (idle + walk) * j.curl - lift * j.curl
       j.bone.quaternion.copy(j.rest)
       j.bone.rotateOnAxis(CURL_AXIS, close)
     }
