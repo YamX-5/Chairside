@@ -10,6 +10,7 @@ import {
   DESK_YAW,
   DOORWAY,
   GLOVE_MOUNT_Y,
+  INTERACTABLES,
   MONITOR_POS,
   SCREEN_ANCHOR,
   SHELF_BOARDS,
@@ -257,12 +258,47 @@ function placed(
 // 5. The glove dispenser is on a surface, in a band where it can exist
 // ---------------------------------------------------------------------------
 
+//
+// A CENTRE POINT IS NOT A CHECK. This used to assert only that GLOVE_MOUNT_Y sat
+// between the worktop and the wall units — and it passed while the dispenser's
+// bottom was 5 mm BELOW the worktop, clipping through the counter, because
+// GloveBox renders a 0.24 m body CENTRED on that value. Assert the body's real
+// extent, derived from the same numbers the component renders.
 {
+  // Mirrors GloveBox.tsx: a 0.17 x 0.24 x 0.09 body tilted 0.14 rad about X,
+  // centred on GLOVE_MOUNT_Y.
+  const TILT = 0.14
+  const [bw, bh, bd] = [0.17, 0.24, 0.09]
+  const halfH = (bh / 2) * Math.cos(TILT) + (bd / 2) * Math.sin(TILT)
+  const lo = GLOVE_MOUNT_Y - halfH
+  const hi = GLOVE_MOUNT_Y + halfH
+
   assert.ok(
-    GLOVE_MOUNT_Y > WORKTOP_Y && GLOVE_MOUNT_Y < UPPER_CABINET_MIN_Y,
-    `the glove box mounts at ${GLOVE_MOUNT_Y}, which is not between the worktop ` +
-      `(${WORKTOP_Y}) and the underside of the wall units (${UPPER_CABINET_MIN_Y}) — ` +
-      `it is inside the cabinets`,
+    lo > WORKTOP_Y,
+    `the glove dispenser's base is at ${lo.toFixed(3)}, below the worktop at ` +
+      `${WORKTOP_Y} — it is clipping through the counter`,
+  )
+  assert.ok(
+    hi < UPPER_CABINET_MIN_Y,
+    `the glove dispenser's top is at ${hi.toFixed(3)}, above the wall units at ` +
+      `${UPPER_CABINET_MIN_Y} — it is inside the cabinets`,
+  )
+  // And the band has to be able to hold it at all. At UPPER_CABINET_MIN_Y =
+  // 1.117 the band was 217 mm and no height could fit a 250 mm box, which is the
+  // failure the old assertion could not express.
+  assert.ok(
+    UPPER_CABINET_MIN_Y - WORKTOP_Y > bh,
+    `the splashback band is ${((UPPER_CABINET_MIN_Y - WORKTOP_Y) * 1000).toFixed(0)} mm ` +
+      `and the dispenser is ${(bh * 1000).toFixed(0)} mm — it cannot fit at any height`,
+  )
+  // Width, too: it hangs between the station's two built-in shelf assemblies,
+  // which leave the run from -0.325 to 0.128 clear.
+  const spot = INTERACTABLES.find((i) => i.id === 'gloves')!
+  assert.ok(
+    spot.x - bw / 2 > -0.325 && spot.x + bw / 2 < 0.128,
+    `the glove dispenser spans x ${(spot.x - bw / 2).toFixed(3)}..` +
+      `${(spot.x + bw / 2).toFixed(3)}, outside the clear run -0.325..0.128 — ` +
+      `it is inside a shelf`,
   )
 }
 

@@ -135,6 +135,20 @@ export interface Bob {
 }
 
 /**
+ * How far the player travels per step, in metres.
+ *
+ * A comfortable adult step is 0.72-0.76 m at 1.4 m/s, but this game walks at
+ * WALK_SPEED = 2.6 m/s, and step length grows with pace: at that speed a real
+ * stride is nearer a metre. Using the comfortable-pace figure here would give
+ * 3.5 steps a second, a buzz rather than a walk.
+ *
+ * At 1.0 m the bob runs at 2.6 Hz, which is the cadence someone actually moving
+ * 2.6 m/s would have. Because the bob is driven by DISTANCE, this stays correct
+ * on its own if the speed is ever changed.
+ */
+const STEP_LENGTH = 1.0
+
+/**
  * Head bob, driven by DISTANCE WALKED rather than elapsed time.
  *
  * Time-based bob drifts out of sync with the stride whenever speed changes, and
@@ -147,8 +161,11 @@ export interface Bob {
 export function headBob(distance: number, intensity: number): Bob {
   const i = clamp(intensity, 0, 1)
   if (i <= 0) return { y: 0, roll: 0 }
-  // ~2 bobs per stride: the vertical peak happens on each footfall.
-  const phase = distance * 4.6
+  // One vertical cycle per STEP — the head rises and falls on each footfall,
+  // which is twice per stride. Writing it as 2*PI/STEP_LENGTH makes that the
+  // definition rather than a tuned number: it was 4.6, which is 2*PI/1.37, so
+  // the head bobbed once per STRIDE while the comment claimed once per step.
+  const phase = (distance * 2 * Math.PI) / STEP_LENGTH
   return {
     y: Math.sin(phase) * 0.021 * i,
     // Roll runs at half frequency — one lean per stride, alternating feet.

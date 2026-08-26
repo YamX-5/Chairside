@@ -294,22 +294,54 @@ export const STATION_UPPER_FACE_Z = STATION_ORIGIN_Z - 0.062
  * Anything bolted to the run at working height mounts HERE — it is the only
  * vertical surface in that band.
  */
-export const STATION_SPLASHBACK_Z = STATION_ORIGIN_Z - 0.44
-
 /**
- * Where the upper cabinets begin. Measured: the lowest carcass sits at 1.117.
- * The gap between WORKTOP_Y and this is the only band on the run where
- * something can stand on the counter or hang on the wall without fouling them.
- */
-export const UPPER_CABINET_MIN_Y = 1.117
-
-/**
- * Where the glove dispenser bolts to the splashback.
+ * Its FRONT face, which is what things bolt to.
  *
- * Inside the WORKTOP_Y..UPPER_CABINET_MIN_Y band. It used to be 1.24, which is
- * above 1.117 and therefore inside the wall units.
+ * This was ORIGIN - 0.44, which is the panel's BACK. The measured panel occupies
+ * z -0.430..-0.410, so anything mounted at -0.44 straddles it instead of resting
+ * on it and half the object disappears into the wall.
  */
-export const GLOVE_MOUNT_Y = 1.02
+export const STATION_SPLASHBACK_Z = STATION_ORIGIN_Z - 0.414
+
+/**
+ * Where the WALL UNITS begin — the cabinets that hang above the counter.
+ *
+ * This was 1.117, taken as a minimum over every "upper" carcass in the asset.
+ * That caught the wrong unit: 1.117 is the door-frame split on the full-height
+ * end cabinet that STANDS BESIDE the counter at x 1.539..1.959, not the
+ * underside of anything above it. The carcasses actually over the counter run
+ * (x -1.93..0.88) all bottom out at 1.357.
+ *
+ * The error mattered because this number defines the usable band on the
+ * splashback. At 1.117 the code believed nothing taller than 217 mm could stand
+ * on the worktop — a benchtop autoclave is ~400 mm, an ultrasonic bath ~300, the
+ * glove dispenser 250. The file's own prose disagreed with it in two places:
+ * WORKTOP_Y says the wall units run "from 1.20 to 2.13", and the eto_sterilizer
+ * note says they "leave 0.30 m".
+ *
+ * At 1.357 the suite reads as ordinary casework: 0.90 counter + 0.457 splashback
+ * + 0.775 wall unit = the asset's measured 2.132 m. That 457 mm is also the NKBA
+ * Guideline 8 minimum clear between a work surface and a wall cabinet, and what
+ * SEFA-8 lab casework leaves over a standing bench.
+ */
+export const UPPER_CABINET_MIN_Y = 1.357
+
+/**
+ * Where the glove dispenser bolts to the splashback — its CENTRE, not its base.
+ *
+ * GloveBox renders a 0.24 m body centred on this, so at 1.02 the dispenser ran
+ * 0.895..1.145: its bottom 5 mm BELOW the worktop, clipping through the counter
+ * it was supposed to hang above, and its top driven into the height the code
+ * then believed was the cabinet underside.
+ *
+ * No value of this constant was valid at the time. It had been pushed down to
+ * fit the false 217 mm band left by UPPER_CABINET_MIN_Y = 1.117, and a 250 mm
+ * dispenser does not fit a 217 mm band at any height. With the real
+ * 0.90..1.357 band, 1.17 leaves 125 mm clear below and 62 mm above, putting the
+ * dispensing slot near 1.29 m — inside the 1.20-1.40 m clinical mounting range
+ * and well within ADA/ANSI A117.1 §308 forward reach.
+ */
+export const GLOVE_MOUNT_Y = 1.17
 
 /** Furniture the player cannot walk through. Kit position x2, plus footprint. */
 export const COLLIDERS: Box[] = [
@@ -418,7 +450,11 @@ export const INTERACTABLES: Interactable[] = [
   { id: 'xray', x: BOOKCASE_POS[0], z: BOOKCASE_POS[2] - 0.269 / 2 - 0.42, radius: 0.6 },
   // The glove box, on the sterilising run — where you actually glove up.
   // Clear of the station collider (maxZ -1.47) by more than PLAYER_RADIUS.
-  { id: 'gloves', x: 0.35, z: STATION.maxZ + 0.45, radius: 0.5 },
+  // x moved off 0.35: the station has a built-in wall shelf assembly there, and
+  // it left only a 124 mm window of clear splashback for a 250 mm dispenser. The
+  // run between the two shelf assemblies (-0.325 to 0.128) is clear top to
+  // bottom, which is the only place on the counter a box this size can hang.
+  { id: 'gloves', x: -0.1, z: STATION.maxZ + 0.45, radius: 0.5 },
 ]
 
 /**

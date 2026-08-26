@@ -27,17 +27,27 @@ import { GLOVE_MOUNT_Y, INTERACTABLES, STATION_SPLASHBACK_Z } from './layout'
  * floating 0.79 m in front of the nearest real geometry, out over the worktop's
  * leading edge.
  *
- * The height moved too: 1.24 is above UPPER_CABINET_MIN_Y (1.117), i.e. inside
- * the wall units. GLOVE_MOUNT_Y sits in the band where a dispenser can exist.
+ * The height moved too. GLOVE_MOUNT_Y sits in the band where a dispenser can
+ * exist — see the note there for why no value of it was valid until
+ * UPPER_CABINET_MIN_Y was corrected.
  */
 const CABINET_FACE_Z = STATION_SPLASHBACK_Z
 const MOUNT_Y = GLOVE_MOUNT_Y
+
+/**
+ * Half the body's depth once tilted, so its BACK sits flush on the splashback.
+ *
+ * The body is 0.09 deep and 0.24 tall, tilted 0.14 rad, so the half-depth along
+ * z is 0.045*cos(0.14) + 0.12*sin(0.14). The old value of 0.035 was less than
+ * that, which buried the back of the dispenser inside the panel.
+ */
+const STANDOFF = 0.045 * Math.cos(0.14) + 0.12 * Math.sin(0.14)
 
 const spot = INTERACTABLES.find((i) => i.id === 'gloves')!
 
 export const GloveBox = memo(function GloveBox({ gloved }: { gloved: boolean }) {
   return (
-    <group position={[spot.x, MOUNT_Y, CABINET_FACE_Z + 0.035]}>
+    <group position={[spot.x, MOUNT_Y, CABINET_FACE_Z + STANDOFF]}>
       {/* The dispenser body. Tilted forward slightly so the opening faces the
           room rather than the ceiling — that tilt is what makes it read as a
           dispenser and not a box screwed to a wall. */}
