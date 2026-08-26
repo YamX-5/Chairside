@@ -16,6 +16,8 @@ import {
   UPPER_CABINET_MIN_Y,
   WORKTOP_Y,
   XRAY_DOCK,
+  COLLIDERS,
+  PROPS,
   blocked,
 } from './layout'
 import { BOUND, PLAYER_RADIUS, ROOM_HALF } from './theme3d'
@@ -263,8 +265,59 @@ function placed(
   )
 }
 
+// ---------------------------------------------------------------------------
+// 6. Every solid prop is inside a collider that actually covers it
+// ---------------------------------------------------------------------------
+//
+// THE ASSERTION THAT WOULD HAVE CAUGHT THE RESIZE.
+//
+// When the room grew from 4.8 m to 6.0 m, the desk, the cabinet and the
+// bookcase were derived from ROOM_HALF and moved to the new walls. Their
+// COLLIDERS were still literals and stayed at the old ones — so there was
+// furniture you could walk straight through and empty floor you could not
+// cross, and all 26 suites passed. Nothing had ever compared a prop to the box
+// that is supposed to represent it.
+//
+// `fills` marks a prop that IS a piece of furniture, as opposed to something
+// small resting on one.
+
+for (const prop of PROPS) {
+  if (!prop.fills) continue
+
+  const m = measureGlb(P(`props/${prop.id}.glb`))
+  if (!m) continue // covered by propScale.test.ts; not this file's job
+
+  const box = placed(m, prop.pos, prop.yaw)
+  // The collider that best covers this prop's footprint.
+  let best = 0
+  let bestBox: (typeof COLLIDERS)[number] | null = null
+  for (const b of COLLIDERS) {
+    const ox = Math.min(box.hi[0], b.maxX) - Math.max(box.lo[0], b.minX)
+    const oz = Math.min(box.hi[2], b.maxZ) - Math.max(box.lo[2], b.minZ)
+    if (ox <= 0 || oz <= 0) continue
+    const area = ox * oz
+    if (area > best) {
+      best = area
+      bestBox = b
+    }
+  }
+
+  const footprint = (box.hi[0] - box.lo[0]) * (box.hi[2] - box.lo[2])
+  assert.ok(
+    bestBox,
+    `prop '${prop.id}' at (${prop.pos[0].toFixed(2)}, ${prop.pos[2].toFixed(2)}) has no ` +
+      `collider overlapping it at all — you can walk straight through it`,
+  )
+  assert.ok(
+    best / footprint > 0.6,
+    `prop '${prop.id}' is only ${((best / footprint) * 100).toFixed(0)}% covered by its ` +
+      `collider — the box and the furniture have drifted apart`,
+  )
+}
+
 console.log(
   'placement.test.ts — tray/stool, cabinet shelf, doorway, X-ray headroom, ' +
-    'desk workstation and glove mount all checked against the shipped assets, ' +
+    'desk workstation, glove mount and every solid prop vs its collider ' +
+    'checked against the shipped assets, ' +
     'all assertions passed',
 )

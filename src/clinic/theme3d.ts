@@ -52,7 +52,13 @@ export const WALK_SPEED = 2.6 // metres per second
 export const PLAYER_RADIUS = 0.32
 
 /**
- * Room is 4.8 x 4.8 metres, walls at ±2.4.
+ * Room is 6.0 x 6.0 metres, walls at ±3.0.
+ *
+ * Grown from 4.8 m. A real single operatory is 10-14 m2 and 4.8 m was chosen
+ * for that, but the sterilisation station measures 3.92 x 0.88 m once its
+ * worktop sits at a usable height — with a 1.95 m unit in the middle of the
+ * room that left a lane too narrow to work in. 36 m2 is a teaching bay rather
+ * than a private surgery, which is what a student actually trains in.
  *
  * It was 8 x 8 — 64 m², which is FOUR TIMES a real dental operatory (10-14 m²).
  * That single number was why the room read as random and empty: three separate
@@ -63,5 +69,5 @@ export const PLAYER_RADIUS = 0.32
  * 23 m² is still generous for an operatory, which is deliberate — this room also
  * carries the study desk and has to be walkable in first person.
  */
-export const ROOM_HALF = 2.4
+export const ROOM_HALF = 3.0
 export const BOUND = ROOM_HALF - PLAYER_RADIUS - 0.05

@@ -12,6 +12,8 @@
  * the desk never once fired the prompt.
  */
 
+import { ROOM_HALF } from './theme3d'
+
 export interface Box {
   minX: number
   maxX: number
@@ -134,7 +136,13 @@ export const LAPTOP_LID_H = 0.195
 export const LAPTOP_TILT = 0.18
 
 /** The desk's own position, so everything ON it is derived from one number. */
-export const DESK_POS: [number, number, number] = [-2.08, 0, 0.3]
+export const DESK_POS: [number, number, number] = [
+  // Against the -X wall. office_desk.glb is 0.564 m deep and yawed a quarter
+  // turn, so half its depth is what stands between its centre and the plaster.
+  -ROOM_HALF + 0.564 / 2 + 0.04,
+  0,
+  0.3,
+]
 
 /** The desk faces into the room: you sit at +X of it and look back at -X. */
 export const DESK_YAW = Math.PI / 2
@@ -176,14 +184,24 @@ export const LAPTOP = SCREEN_ANCHOR
  * The bookcase's position. Named because XRAY_DOCK stands on it — the dock used
  * to restate these numbers, so moving the bookcase left the X-ray floating.
  */
-export const BOOKCASE_POS: [number, number, number] = [-1.05, 0, 2.23]
+export const BOOKCASE_POS: [number, number, number] = [
+  -1.05,
+  0,
+  // Against the +Z wall; book_shelf.glb is 0.269 m deep.
+  ROOM_HALF - 0.269 / 2 - 0.04,
+]
 
 /**
  * The glass cabinet's position. Named because the cabinet instruments sit on
  * its shelves. They used to be drawn in a primitive box derived from CHAIR_POS
  * instead, which is how they ended up 2.2 m away and buried in the station.
  */
-export const CABINET_POS: [number, number, number] = [2.05, 0, 0.6]
+export const CABINET_POS: [number, number, number] = [
+  // Against the +X wall; closet.glb is 0.538 m deep and yawed a quarter turn.
+  ROOM_HALF - 0.538 / 2 - 0.08,
+  0,
+  0.6,
+]
 
 /**
  * The sterilisation station's footprint, as ONE named box.
@@ -197,7 +215,38 @@ export const CABINET_POS: [number, number, number] = [2.05, 0, 0.6]
  *
  * Measured off the exported asset: 3.92 m wide, 0.88 m deep, 2.13 m tall.
  */
-export const STATION = { minX: -1.96, maxX: 1.96, minZ: -2.4, maxZ: -1.47 } as const
+// Against the -Z wall. The asset is 0.884 m deep, so its centre sits half of
+// that off the plaster. PROPS reads this rather than restating it — the two used
+// to be separate numbers kept equal by hand.
+const STATION_ORIGIN_Z = -ROOM_HALF + 0.884 / 2 + 0.05
+
+/**
+ * Where things standing ON the worktop sit, front to back.
+ *
+ * Derived from the station, because they travel with it. When the room grew and
+ * the station slid back to meet the new wall, hand-typed copies of this stayed
+ * put and left the masks and the instrument tray hanging in mid-air in front of
+ * the counter — with every test still green, because nothing asserted that a
+ * prop resting on another prop moves with it.
+ */
+export const WORKTOP_ITEM_Z = STATION_ORIGIN_Z - 0.14
+
+/**
+ * The EtO gas cart, on the floor against the +X wall.
+ *
+ * Its footprint is 0.84 m square, chamber door included — the door swings, and
+ * a collider that ignored it would let you walk through it.
+ */
+export const ETO_POS: [number, number, number] = [ROOM_HALF - 0.42 - 0.06, 0, -0.95]
+
+export const STATION = {
+  minX: -1.96,
+  maxX: 1.96,
+  minZ: -ROOM_HALF,
+  // Measured half-depth forward of its own origin, which is itself derived from
+  // the wall. Nothing in this box is a coordinate anyone typed.
+  maxZ: STATION_ORIGIN_Z + 0.884 / 2,
+} as const
 
 /**
  * The station's real surfaces, as offsets from the prop's own origin.
@@ -213,7 +262,6 @@ export const STATION = { minX: -1.96, maxX: 1.96, minZ: -2.4, maxZ: -1.47 } as c
  * frontmost thing at every height — which is exactly why a per-height-band scan
  * reported one consistent front face and was believed.
  */
-const STATION_ORIGIN_Z = -1.91 // must equal the sterilization_centre entry in PROPS
 
 /** The drawer fronts — what you stand in front of and pull. */
 export const STATION_FACE_Z = STATION_ORIGIN_Z + 0.324
@@ -245,23 +293,53 @@ export const GLOVE_MOUNT_Y = 1.0
 
 /** Furniture the player cannot walk through. Kit position x2, plus footprint. */
 export const COLLIDERS: Box[] = [
-  // Re-derived for the 4.8 x 4.8 operatory, and matched against the measured
-  // footprint of every exported prop. No collider exists for furniture that is
-  // not on screen, and nothing on screen is missing one.
+  // EVERY box here is derived from the prop it belongs to, and every wall prop
+  // from ROOM_HALF. Growing the room from 4.8 m to 6.0 m moved the desk, the
+  // cabinet and the bookcase to the new walls while these boxes stayed at the
+  // old ones — furniture you could walk through, and open floor you could not —
+  // and all 26 suites stayed green. Hence: no literals.
+
   STATION,
+
   // Derived from CHAIR_POS. Deliberately tight — an oversized chair collider
   // plus the player radius is what stopped anyone getting near the patient.
   boxAround(CHAIR_POS, CHAIR_HALF_X, CHAIR_MIN_Z, CHAIR_MAX_Z),
-  { minX: -2.4, maxX: -1.72, minZ: -0.55, maxZ: 1.15 }, // desk + PC tower
-  { minX: 1.78, maxX: 2.4, minZ: -0.12, maxZ: 1.32 }, // storage cabinet
-  // The EtO gas cart. Measured off the placed asset, door included — it swings
-  // open, and a collider that ignored it would let you walk through the door.
-  { minX: 1.53, maxX: 2.37, minZ: -1.37, maxZ: -0.53 },
-  // The bookcase. Floor-standing now, so unlike the old wall shelf it does need
-  // a collider — but a shallow one: 0.27 m deep, leaving the approach at
-  // z = 1.6 clear of it by more than PLAYER_RADIUS so the X-ray stays reachable.
-  { minX: -1.65, maxX: -0.45, minZ: 2.08, maxZ: 2.4 },
+
+  // The desk. office_desk.glb is 1.316 x 0.564 and yawed a quarter turn, so its
+  // width runs along Z and its depth along X.
+  {
+    minX: -ROOM_HALF,
+    maxX: DESK_POS[0] + 0.564 / 2,
+    minZ: DESK_POS[2] - 1.316 / 2,
+    maxZ: DESK_POS[2] + 1.316 / 2,
+  },
+
+  // The glass cabinet. closet.glb is 1.284 x 0.538.
+  {
+    minX: CABINET_POS[0] - 0.538 / 2,
+    maxX: ROOM_HALF,
+    minZ: CABINET_POS[2] - 1.284 / 2,
+    maxZ: CABINET_POS[2] + 1.284 / 2,
+  },
+
+  // The EtO gas cart.
+  {
+    minX: ETO_POS[0] - 0.42,
+    maxX: ETO_POS[0] + 0.42,
+    minZ: ETO_POS[2] - 0.42,
+    maxZ: ETO_POS[2] + 0.42,
+  },
+
+  // The bookcase. Shallow at 0.269 m, so the approach in front of it stays clear
+  // of PLAYER_RADIUS and the portable X-ray on top stays reachable.
+  {
+    minX: BOOKCASE_POS[0] - 1.11 / 2,
+    maxX: BOOKCASE_POS[0] + 1.11 / 2,
+    minZ: BOOKCASE_POS[2] - 0.269 / 2,
+    maxZ: ROOM_HALF,
+  },
 ]
+
 
 export type InteractableId = 'study' | 'solve' | 'drawer' | 'board' | 'door' | 'gloves'
 
@@ -280,7 +358,8 @@ export interface Interactable {
 export const INTERACTABLES: Interactable[] = [
   // In front of the laptop, clear of the desk collider (maxX -1.72) by more
   // than PLAYER_RADIUS.
-  { id: 'study', x: -1.35, z: 0.3, radius: 1.1 },
+  // In front of the desk, clear of it by more than PLAYER_RADIUS.
+  { id: 'study', x: DESK_POS[0] + 0.95, z: DESK_POS[2], radius: 1.1 },
   {
     // DERIVED: the operator's position, at the patient's left where a
     // right-handed dentist stands. Typed independently of CHAIR_POS once, this
@@ -296,21 +375,22 @@ export const INTERACTABLES: Interactable[] = [
     z: CHAIR_POS[2] - 0.45,
     radius: 1.1,
   },
-  { id: 'door', x: 1.25, z: 1.9, radius: 0.9 }, // the doorway in the near wall
+  // The doorway in the near wall — and where the patient walks in from.
+  { id: 'door', x: 1.25, z: ROOM_HALF - 0.9, radius: 0.9 },
   // In front of the station's LEFT drawer bank. It was at x 1.75, which is now
   // inside the EtO cart's footprint — an interactable you cannot stand at is an
   // interactable that does not exist.
-  { id: 'drawer', x: -1.3, z: -1.0, radius: 0.8 },
+  { id: 'drawer', x: -1.3, z: STATION.maxZ + 0.45, radius: 0.8 },
   // The reputation board moved OFF the sterilising wall. In a 4.8 m operatory
   // the bench run is only 2.25 m long, and a board plus a glove box on the same
   // run sat 1.00 m apart -- their zones overlapped so heavily that standing to
   // read one prompted the other. It now hangs on the near wall above the
   // shelving, which is also where you would actually put a noticeboard: out of
   // the working zone, where you read it on the way in or out.
-  { id: 'board', x: -1.05, z: 1.6, radius: 0.85 },
+  { id: 'board', x: BOOKCASE_POS[0], z: BOOKCASE_POS[2] - 0.75, radius: 0.85 },
   // The glove box, on the sterilising run — where you actually glove up.
   // Clear of the station collider (maxZ -1.47) by more than PLAYER_RADIUS.
-  { id: 'gloves', x: 0.35, z: -1.0, radius: 0.75 },
+  { id: 'gloves', x: 0.35, z: STATION.maxZ + 0.45, radius: 0.75 },
 ]
 
 /**
@@ -611,7 +691,7 @@ export const PROPS: Prop[] = [
   // which is why their y is 0.90 and their x stays inside that span. The
   // autoclave used to sit at x 1.90 -- past the right-hand end of the bench,
   // floating at 0.90 m with nothing underneath it.
-  { id: 'sterilization_centre', pos: [0, 0, -1.91], yaw: 0, fills: true },
+  { id: 'sterilization_centre', pos: [0, 0, STATION_ORIGIN_Z], yaw: 0, fills: true },
   // ON THE WORKTOP at exactly WORKTOP_Y. These three previously sat at y 0.9
   // which, on the mis-scaled station, was the ROOF of the upper cabinets — the
   // masks, the tray and the autoclave were all perched on top of the unit.
@@ -619,8 +699,8 @@ export const PROPS: Prop[] = [
   // x -0.76..-0.36 and the right-hand third is a raised section under the tall
   // end cabinet. Both x values below sit in a run that was measured clear, with
   // headroom checked against the upper cabinets above them.
-  { id: 'masks_disposable', pos: [-1.6, WORKTOP_Y, -2.05], yaw: 0 },
-  { id: 'dental_misc', pos: [-1.05, WORKTOP_Y, -2.05], yaw: 0 },
+  { id: 'masks_disposable', pos: [-1.6, WORKTOP_Y, WORKTOP_ITEM_Z], yaw: 0 },
+  { id: 'dental_misc', pos: [-1.05, WORKTOP_Y, WORKTOP_ITEM_Z], yaw: 0 },
 
   // --- floor-standing equipment -------------------------------------------------
   // The EtO sterilizer is a WHEELED GAS CART, not a benchtop unit: castors, two
@@ -629,7 +709,7 @@ export const PROPS: Prop[] = [
   // half its real height, and on a surface it was never designed to sit on. At
   // its true 1.30 m it does not fit under the wall cabinets at all (they leave
   // 0.30 m), which is the geometry telling you it belongs on the floor.
-  { id: 'eto_sterilizer', pos: [1.95, 0, -0.95], yaw: 0, fills: true },
+  { id: 'eto_sterilizer', pos: ETO_POS, yaw: 0, fills: true },
 
   // --- left wall: the admin corner --------------------------------------------
   // The desk sits under LAPTOP (-2.02, 0.8, 0.3) so the laptop lands ON it.
@@ -654,7 +734,13 @@ export const PROPS: Prop[] = [
 
 
 /** Where the player spawns, and which way they face (radians, 0 = looking -Z). */
-export const SPAWN = { x: 1.25, z: 1.75, yaw: 0 }
+export const SPAWN = {
+  // You start where you came in. Derived, so growing the room cannot spawn the
+  // player inside a wall or halfway across the floor from the door.
+  x: INTERACTABLE_BY_ID.get('door')!.x,
+  z: INTERACTABLE_BY_ID.get('door')!.z - 0.2,
+  yaw: 0,
+}
 
 
 
