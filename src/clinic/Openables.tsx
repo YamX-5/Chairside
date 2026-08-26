@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Box3, Group, Matrix4, Object3D, Quaternion, Vector3 } from 'three'
 import { OPENABLES, openableId, type Openable } from './layout'
+import { DURATIONS, advance, leap, slip } from './motion'
 
 /**
  * Makes the parts of a prop that should move, move: drawers slide, doors swing.
@@ -172,14 +173,22 @@ export function Openables({
 
   useFrame((_, dt) => {
     if (!rigs.current.length) return
-    // Ease toward each part's own target. A drawer that teleports open reads as
-    // a glitch; one that takes a third of a second reads as a drawer.
-    const k = 1 - Math.exp(-dt * 9)
 
     for (const rig of rigs.current) {
-      const target = openIds.has(rig.id) ? 1 : 0
-      rig.t += (target - rig.t) * k
-      const a = rig.t
+      const open = openIds.has(rig.id)
+      // Progress advances in real time, so a 120 Hz phone and a 30 Hz one take
+      // the same wall-clock time. The old per-frame factor did not.
+      rig.t = advance(rig.t, open ? 1 : 0, dt, DURATIONS.openable)
+
+      // OPENING leaps: it pulls out fast and springs a little past where it is
+      // going, the way a drawer you actually yank does.
+      //
+      // CLOSING slips, and the curve has to be MIRRORED to do it. `rig.t` runs
+      // 1 -> 0 on the way shut, and slip is an ease-out — read directly it is
+      // flat near 1 and steep near 0, so the drawer would creep away and then
+      // slam. `1 - slip(1 - t)` puts the speed at the start and the settle at
+      // the end, which is what closing a drawer actually feels like.
+      const a = open ? leap(rig.t) : 1 - slip(1 - rig.t)
 
       if (rig.spec.kind === 'drawer') {
         rig.pivot.position.copy(rig.rest).addScaledVector(rig.slide, rig.spec.travel * a)

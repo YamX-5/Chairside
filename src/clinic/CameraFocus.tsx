@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Euler, PerspectiveCamera, Quaternion, Vector3 } from 'three'
+import { DURATIONS, advance, slip } from './motion'
 
 /**
  * Leans the camera in to look at something, and puts it back afterwards.
@@ -87,7 +88,16 @@ export function CameraFocus({ target }: { target: FocusTarget | null }) {
     // whole easing is skipped. Slerping between two individually level
     // orientations passes through significant ROLL on the way, so being
     // abandoned partway through is what tilts the entire view.
-    k.current += (want - k.current) * Math.min(1, Math.min(delta, 0.05) * 4.5)
+    // Real time, not a per-frame factor: a 120 Hz phone and a 30 Hz one must
+    // take the same wall-clock time to sit down. Sitting is slower than standing
+    // — you lower yourself into a chair and you get out of it.
+    k.current = advance(k.current, want, delta, want === 1 ? DURATIONS.sit : DURATIONS.stand)
+
+    // SLIP, both ways, and never leap: this curve drives the CAMERA. Overshoot
+    // on a viewpoint is what makes people motion-sick, so the springiness that
+    // suits a drawer is exactly wrong here. Fast away from where you were, then
+    // a long glide into the seat — weight without a bounce.
+    const eased = slip(k.current)
 
     if (target) {
       targetPos.set(...target.position)
@@ -99,12 +109,12 @@ export function CameraFocus({ target }: { target: FocusTarget | null }) {
           state.camera.matrixWorld.clone().lookAt(targetPos, lookTarget, up),
         ),
       )
-      cam.position.lerpVectors(saved.pos, targetPos, k.current)
+      cam.position.lerpVectors(saved.pos, targetPos, eased)
       if (target.free) {
         // Move into the seat, but hand rotation back once settled so the player
         // can look around from it.
         if (k.current < 0.995) {
-          cam.quaternion.slerpQuaternions(saved.quat, targetQuat, k.current)
+          cam.quaternion.slerpQuaternions(saved.quat, targetQuat, eased)
         } else if (!settled.current) {
           // LAND EXACTLY before releasing. Stopping at k = 0.995 leaves half a
           // percent of the swing unapplied, and since the swing carries roll,
@@ -114,14 +124,14 @@ export function CameraFocus({ target }: { target: FocusTarget | null }) {
           settled.current = true
         }
       } else {
-        cam.quaternion.slerpQuaternions(saved.quat, targetQuat, k.current)
-        cam.fov = saved.fov + ((target.fov ?? 45) - saved.fov) * k.current
+        cam.quaternion.slerpQuaternions(saved.quat, targetQuat, eased)
+        cam.fov = saved.fov + ((target.fov ?? 45) - saved.fov) * eased
         cam.updateProjectionMatrix()
       }
     } else if (saved.valid) {
       targetPos.copy(saved.pos)
-      cam.position.lerpVectors(saved.pos, cam.position, k.current)
-      cam.quaternion.slerp(saved.quat, 1 - k.current)
+      cam.position.lerpVectors(saved.pos, cam.position, eased)
+      cam.quaternion.slerp(saved.quat, 1 - eased)
       cam.fov = saved.fov
       cam.updateProjectionMatrix()
       if (k.current < 0.01) {

@@ -10,6 +10,8 @@ const base: PromptState = {
   drawerOpen: false,
   studied: false,
   canTreat: false,
+  seat: null,
+  seated: false,
 }
 const at = (p: Partial<PromptState>): PromptState => ({ ...base, ...p })
 
@@ -48,8 +50,17 @@ assert.equal(promptFor(at({ near: 'study', studied: true })), PROMPT_TEXT.studyA
   // The morning gate is explained rather than silent.
   assert.equal(promptFor(at({ near: 'solve' })), PROMPT_TEXT.deskFirst)
 
-  // Studied but no plan yet: genuinely nothing to do here.
+  // Studied, no plan, and no seat in reach: genuinely nothing to do.
   assert.equal(promptFor(at({ near: 'solve', studied: true })), null)
+
+  // But the operator's stool is 0.43 m from that spot, and its zone is covered
+  // by 'solve'. Returning null there is why the stool could not be sat on: on a
+  // phone a null prompt renders no button, so there was nothing to press.
+  assert.equal(
+    promptFor(at({ near: 'solve', studied: true, seat: "the operator's stool" })),
+    PROMPT_TEXT.sit,
+    'a seat in reach must be offered even where an interactable zone covers it',
+  )
 
   // Planned, empty-handed.
   assert.equal(
@@ -88,6 +99,23 @@ assert.equal(promptFor(at({ near: 'study', studied: true })), PROMPT_TEXT.studyA
   )
   assert.ok(p && p.en.includes('extraction forceps'), `expected the tool named, got "${p?.en}"`)
   assert.ok(p && p.ar.includes('extraction forceps'), 'the Arabic line must interpolate too')
+}
+
+// ---------------------------------------------------------------------------
+// Sitting and standing
+// ---------------------------------------------------------------------------
+
+{
+  // Standing up outranks everything — while seated it is the only thing E does.
+  assert.equal(
+    promptFor(at({ seated: true, near: 'solve', studied: true, canTreat: true, holding: 'mirror' })),
+    PROMPT_TEXT.stand,
+    'a seated player must always be offered a way back up',
+  )
+  // Offered in open floor too, not only at a named interactable.
+  assert.equal(promptFor(at({ near: null, seat: 'the desk chair' })), PROMPT_TEXT.sit)
+  // And not offered when there is nothing to sit on.
+  assert.equal(promptFor(at({ near: null })), null)
 }
 
 // ---------------------------------------------------------------------------

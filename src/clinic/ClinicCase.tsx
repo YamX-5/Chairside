@@ -162,6 +162,8 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     ReturnType<typeof consequenceFor> | null
   >(null)
   const [seatedId, setSeatedId] = useState<string | null>(null)
+  /** The seat within reach, published by Player, so the prompt can offer it. */
+  const [nearSeat, setNearSeat] = useState<string | null>(null)
   /** Live camera position, so `interact` can find the nearest seat. */
   const camPosRef = useRef({ x: SPAWN.x, z: SPAWN.z })
   const [reading, setReading] = useState(false)
@@ -434,6 +436,8 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     drawerOpen: openIds.has(DRAWER_PROMPT_OPENS),
     studied: day !== 'morning',
     canTreat: planned && atChair,
+    seat: nearSeat,
+    seated: seatedId !== null,
   })
 
   return (
@@ -572,6 +576,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
           isTouch={isTouch}
           nearestRef={nearestRef}
           onNearChange={setNear}
+          onNearSeatChange={setNearSeat}
           posRef={camPosRef}
           frozen={seatedId !== null}
         />

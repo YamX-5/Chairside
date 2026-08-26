@@ -2,7 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import { BOUND, EYE_HEIGHT, PLAYER_RADIUS, WALK_SPEED } from './theme3d'
-import { nearestInteractable, SPAWN, type InteractableId } from './layout'
+import { nearestInteractable, nearestSeat, SPAWN, type InteractableId } from './layout'
 import { moveInput, touchLook } from './input'
 import { headBob, smoothInput, stepPlayer, type Point } from './movement'
 
@@ -16,6 +16,8 @@ interface Props {
   /** Parent-owned so the keyboard handler and the touch button can read it. */
   nearestRef: RefObject<InteractableId | null>
   onNearChange: (id: InteractableId | null) => void
+  /** The seat in reach, by id, so the prompt can offer to sit on it. */
+  onNearSeatChange?: (id: string | null) => void
   /**
    * Mirrors the camera's ground position out to the parent every frame.
    *
@@ -43,6 +45,7 @@ export function Player({
   isTouch,
   nearestRef,
   onNearChange,
+  onNearSeatChange,
   posRef,
   frozen = false,
 }: Props) {
@@ -54,6 +57,7 @@ export function Player({
   /** Metres walked, which is what drives the bob — see headBob. */
   const walked = useRef(0)
   /** Last frame's bob, removed before the next is applied so it never stacks. */
+  const lastSeat = useRef<string | null>(null)
   const bob = useRef({ y: 0, roll: 0 })
 
   // Spawn once, at eye height, facing into the room.
@@ -134,10 +138,17 @@ export function Player({
     camera.position.y += bob.current.y
     camera.rotation.z += bob.current.roll
 
-    const near = nearestInteractable(camera.position.x, camera.position.z)
+    const near = nearestInteractable(camera.position.x, camera.position.z, yawNow)
     if (near !== nearestRef.current) {
       nearestRef.current = near
       onNearChange(near)
+    }
+    if (onNearSeatChange) {
+      const seat = nearestSeat(camera.position.x, camera.position.z)?.id ?? null
+      if (seat !== lastSeat.current) {
+        lastSeat.current = seat
+        onNearSeatChange(seat)
+      }
     }
   })
 

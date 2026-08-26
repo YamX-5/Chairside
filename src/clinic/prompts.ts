@@ -41,6 +41,19 @@ export interface PromptState {
   studied: boolean
   /** She is in the chair and the plan is committed. */
   canTreat: boolean
+  /**
+   * A seat is within reach, by label, or null.
+   *
+   * Seats are NOT interactables — they are their own table with their own
+   * proximity test — so nothing here knew they existed. At the operator's stool
+   * `nearestInteractable` always returns 'solve' (its zone covers most of the
+   * standable area), and 'solve' returns null before a plan is committed. On a
+   * phone a null prompt renders no button at all, so there was literally nothing
+   * to press: the stool could not be sat on.
+   */
+  seat: string | null
+  /** Already sitting on something. */
+  seated: boolean
 }
 
 /** Every fixed line the prompt can show. */
@@ -89,6 +102,13 @@ export function fill(text: Bi, vars: Record<string, string>): Bi {
  * anaesthetic needle is a mistake the prompt should not invite.
  */
 export function promptFor(s: PromptState): Bi | null {
+  // Standing up outranks everything: while seated it is the only thing E does,
+  // and it is how you get out.
+  if (s.seated) return PROMPT_TEXT.stand
+
+  // Offered wherever nothing more specific claims the spot.
+  const sit = s.seat ? PROMPT_TEXT.sit : null
+
   switch (s.near) {
     case 'study':
       return s.studied ? PROMPT_TEXT.studyAgain : PROMPT_TEXT.study
@@ -111,8 +131,10 @@ export function promptFor(s: PromptState): Bi | null {
     case 'solve': {
       // Nothing to do at the chair until the morning is done and she is planned.
       if (!s.studied) return PROMPT_TEXT.deskFirst
-      if (!s.canTreat) return null
-      if (!s.holding) return PROMPT_TEXT.needInstrument
+      // Before a plan there is nothing to do TO her — but the stool is right
+      // here, and offering nothing left the player with no button on a phone.
+      if (!s.canTreat) return sit
+      if (!s.holding) return sit ?? PROMPT_TEXT.needInstrument
       if (s.holding === 'syringe') {
         return s.anaesthetised ? PROMPT_TEXT.alreadyNumb : PROMPT_TEXT.anaesthetise
       }
@@ -122,6 +144,6 @@ export function promptFor(s: PromptState): Bi | null {
     }
 
     default:
-      return null
+      return sit
   }
 }
