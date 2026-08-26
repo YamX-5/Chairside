@@ -1164,3 +1164,30 @@ html[dir='rtl'] .text-input {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* ---------------------------------------------------------------------------
+   Fullscreen toggle
+   A phone browser spends a third of the screen on its own chrome, and a
+   first-person room rendered into what is left reads as a postage stamp.
+   Sits opposite the reputation pips so it never covers the look area.
+   --------------------------------------------------------------------------- */
+.fullscreen-toggle {
+  position: absolute;
+  inset-block-start: max(12px, env(safe-area-inset-top));
+  inset-inline-end: 12px;
+  z-index: 12;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(10, 12, 15, 0.55);
+  backdrop-filter: blur(4px);
+  color: #eaf1f8;
+  font-size: 18px;
+  line-height: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}

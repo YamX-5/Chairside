@@ -28,6 +28,7 @@ import { promptFor } from './prompts'
 import { StudyWindow } from './StudyWindow'
 import { TouchControls } from './TouchControls'
 import { Mirror } from './Mirror'
+import { FullscreenButton } from './Fullscreen'
 import { ScreenProjector } from './ScreenProjector'
 import { useLocale } from '../locales/LocaleContext'
 import { useRef as useRefAlias } from 'react'
@@ -415,7 +416,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
   })
 
   return (
-    <div style={S.root}>
+    <div className="clinic-root" style={S.root}>
       <Canvas
         // dpr 1: the flat-shaded look gains nothing from supersampling, and on
         // this hardware resolution is the cheapest thing to give back.
@@ -559,6 +560,10 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
 
       <div ref={fxRef} style={S.fx} />
 
+      {/* Fullscreen. Hidden where the browser refuses it (iOS Safari), because a
+          button that silently does nothing is worse than no button. */}
+      <FullscreenButton />
+
       {!reading && !studying && phase === 'deciding' && (
         <>
           <div style={S.crosshair} />
@@ -568,13 +573,13 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
               still explains the day; this tells you what E does RIGHT NOW.
               Before this, "press E to pick up the mirror" was one clause among
               five in a small grey line at the bottom of the screen. */}
-          {activePrompt && (
+          {!isTouch && activePrompt && (
             <div style={S.bigPrompt}>
               <span style={S.bigKey}>E</span>
               <span>{c(activePrompt)}</span>
             </div>
           )}
-          <div style={S.hint}>
+          {!isTouch && <div style={S.hint}>
             {seated
               ? <>sitting on {seated.label} · <kbd style={S.kbd}>E</kbd> stand up</>
               : <><kbd style={S.kbd}>W A S D</kbd> move</>}
@@ -613,7 +618,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
                             ? <> · <kbd style={S.kbd}>E</kbd> take a radiograph</>
                             : <> · <kbd style={S.kbd}>E</kbd> treat her with the {heldInstrument?.label.toLowerCase()}</>
                         : <> · go to the chair</>)}
-          </div>
+          </div>}
 
           {/* Two pips: gloves, and whether she is numb.
               Visible BEFORE you commit, so the mistake is always preventable
@@ -732,7 +737,9 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
 }
 
 const S: Record<string, CSSProperties> = {
-  root: { position: 'fixed', inset: 0, background: '#14100a' },
+  // touchAction belongs on the class too (see .clinic-root), but stating it
+  // here as well means an inline-styled copy of this screen cannot lose it again.
+  root: { position: 'fixed', inset: 0, background: '#14100a', touchAction: 'none' },
   fx: { position: 'fixed', inset: 0, pointerEvents: 'none', opacity: 0, zIndex: 5, transition: 'opacity 90ms linear' },
   /**
    * Sits just below the crosshair, not at the bottom of the screen: your eyes
