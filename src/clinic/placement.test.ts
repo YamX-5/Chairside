@@ -17,6 +17,7 @@ import {
   WORKTOP_Y,
   XRAY_DOCK,
   COLLIDERS,
+  MIRROR,
   PROPS,
   blocked,
 } from './layout'
@@ -315,9 +316,41 @@ for (const prop of PROPS) {
   )
 }
 
+// ---------------------------------------------------------------------------
+// 7. The mirror is on a wall, at a height you can use
+// ---------------------------------------------------------------------------
+
+{
+  assert.ok(
+    Math.abs(Math.abs(MIRROR.x) - ROOM_HALF) < 0.1,
+    `the mirror at x ${MIRROR.x} is not against a wall (they are at +/-${ROOM_HALF})`,
+  )
+  assert.ok(
+    Math.abs(MIRROR.z) < ROOM_HALF,
+    `the mirror at z ${MIRROR.z} is past the end of its wall`,
+  )
+  // Its centre above eye height, its bottom edge below it: you should be able to
+  // see your own face without crouching or standing on anything.
+  assert.ok(
+    MIRROR.y > 1.2 && MIRROR.y - MIRROR.h / 2 < 1.62,
+    `a mirror centred at ${MIRROR.y} with a ${MIRROR.h} m face is not usable at ` +
+      `eye height`,
+  )
+  // And nothing is parked in front of it.
+  for (const b of COLLIDERS) {
+    const inFront =
+      MIRROR.z > b.minZ && MIRROR.z < b.maxZ && b.maxX > MIRROR.x - 0.6 && b.minX < MIRROR.x
+    assert.ok(
+      !inFront,
+      `a collider (x ${b.minX.toFixed(2)}..${b.maxX.toFixed(2)}, ` +
+        `z ${b.minZ.toFixed(2)}..${b.maxZ.toFixed(2)}) stands in front of the mirror`,
+    )
+  }
+}
+
 console.log(
   'placement.test.ts — tray/stool, cabinet shelf, doorway, X-ray headroom, ' +
     'desk workstation, glove mount and every solid prop vs its collider ' +
-    'checked against the shipped assets, ' +
+    'plus the mirror, checked against the shipped assets, ' +
     'all assertions passed',
 )

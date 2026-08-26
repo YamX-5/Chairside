@@ -27,6 +27,7 @@ import { Hands } from './Hands'
 import { promptFor } from './prompts'
 import { StudyWindow } from './StudyWindow'
 import { TouchControls } from './TouchControls'
+import { Mirror } from './Mirror'
 import { ScreenProjector } from './ScreenProjector'
 import { useLocale } from '../locales/LocaleContext'
 import { useRef as useRefAlias } from 'react'
@@ -435,6 +436,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
         <DentalChair />
         <GloveBox gloved={gloved} />
         <ClinicProps openIds={openIds} onToggleOpenable={toggleOpenable} />
+        <Mirror />
 
         {/* Renders nothing; tracks where the monitor is on screen so the study
             window can fly out of it. */}

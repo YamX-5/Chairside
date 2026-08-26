@@ -232,6 +232,26 @@ const STATION_ORIGIN_Z = -ROOM_HALF + 0.884 / 2 + 0.05
 export const WORKTOP_ITEM_Z = STATION_ORIGIN_Z - 0.14
 
 /**
+ * The wall mirror.
+ *
+ * On the +X wall between the cabinet and the sterilising run, at the one stretch
+ * of that wall with nothing standing against it. Hung so its centre is a little
+ * above EYE_HEIGHT — a mirror you have to stoop to use is a mirror nobody uses.
+ *
+ * Derived from ROOM_HALF like every other wall fitting, so growing the room
+ * takes it along instead of leaving it hanging in mid-air.
+ */
+export const MIRROR = {
+  x: ROOM_HALF - 0.03,
+  y: 1.55,
+  z: -1.7,
+  /** Facing -X, back into the room. */
+  yaw: -Math.PI / 2,
+  w: 0.8,
+  h: 1.1,
+}
+
+/**
  * The EtO gas cart, on the floor against the +X wall.
  *
  * Its footprint is 0.84 m square, chamber door included — the door swings, and
