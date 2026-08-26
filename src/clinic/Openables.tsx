@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal, useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Box3, Group, Matrix4, Object3D, Quaternion, Vector3 } from 'three'
 import { OPENABLES, openableId, type Openable } from './layout'
 import { DURATIONS, advance, leap, slip } from './motion'
@@ -59,8 +59,24 @@ interface Rig {
   t: number
 }
 
+/**
+ * The invisible box you click to work a drawer or door.
+ *
+ * Expressed in the PIVOT's own space and rendered as a child of it, so it swings
+ * and slides with the part. It used to be a world-space box captured once, in
+ * the CLOSED position, and never moved again — which broke both directions:
+ *
+ *   - a door swung 90 degrees left its target hanging in the doorway, so every
+ *     click aimed at the shelf behind it hit the door instead and shut it. Since
+ *     the handler calls stopPropagation and r3f stops dispatch at the first
+ *     stopped hit, nothing in the cabinet could ever be picked up.
+ *   - a drawer pulled 0.32 m out could only be closed by clicking the empty air
+ *     where it used to be.
+ */
 interface HitBox {
   id: string
+  /** The pivot this rides on, so the target follows the part. */
+  pivot: Group
   centre: [number, number, number]
   size: [number, number, number]
 }
@@ -144,11 +160,21 @@ export function Openables({
         t: 0,
       })
 
-      const c = box.getCenter(new Vector3())
-      const sz = box.getSize(new Vector3())
+      // The hit box in the PIVOT's frame, so it travels with the part.
+      pivot.updateMatrixWorld(true)
+      const local = box
+        .clone()
+        .applyMatrix4(new Matrix4().copy(pivot.matrixWorld).invert())
+      const c = local.getCenter(new Vector3())
+      const sz = local.getSize(new Vector3())
       boxes.push({
         id: openableId(spec),
+        pivot,
         centre: [c.x, c.y, c.z],
+        // Padded on the pivot's local +Z — the prop's FRONT, the face you aim
+        // at. This used to pad world +Z regardless of the prop's yaw, so for a
+        // rotated prop the target was widened sideways and the face you were
+        // actually pointing at stayed as thin as the door panel.
         size: [Math.max(sz.x, 0.06), Math.max(sz.y, 0.06), Math.max(sz.z, 0.04) + 0.06],
       })
     }
@@ -208,19 +234,29 @@ export function Openables({
   return (
     <>
       {hits.map((h) => (
-        <mesh
-          key={h.id}
-          position={h.centre}
-          onClick={(e: ThreeEvent<MouseEvent>) => {
-            e.stopPropagation()
-            onToggle(h.id)
-          }}
-        >
-          <boxGeometry args={h.size} />
-          {/* Invisible, but still raycast: `visible={false}` would stop it being
-              hit at all, so it is a fully transparent material instead. */}
-          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-        </mesh>
+        // Portalled INTO the pivot, so the target swings and slides with the
+        // part instead of staying where the part used to be. The Fragment
+        // carries the list key — createPortal's third argument is r3f state,
+        // not a key.
+        <Fragment key={h.id}>
+          {createPortal(
+            <mesh
+              position={h.centre}
+              onClick={(e: ThreeEvent<MouseEvent>) => {
+                e.stopPropagation()
+                onToggle(h.id)
+              }}
+            >
+              <boxGeometry args={h.size} />
+              {/* Transparent rather than `visible={false}`. Either would raycast
+                  — three tests layers, not visibility — but an invisible mesh is
+                  easy to mistake for a dead one, and a zero-opacity material
+                  says "present but unseen" to the next reader. */}
+              <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+            </mesh>,
+            h.pivot,
+          )}
+        </Fragment>
       ))}
     </>
   )

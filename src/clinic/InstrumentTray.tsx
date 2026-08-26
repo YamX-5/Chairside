@@ -81,25 +81,47 @@ function Pickable({
   onPick: (id: InstrumentId) => void
 }) {
   if (!node) return null
-  const lifted = hovered && enabled
+  // Hover responds even when picking is locked. Gating the lift on `enabled`
+  // made a not-yet-live tray look dead rather than locked.
+  const lifted = hovered
   return (
     <group
       position={[x, lifted ? 0.03 : 0, 0]}
-      rotation={[-Math.PI / 2, 0, 0]}
+      // NO ROTATION. Every instrument in instruments.glb runs along its LOCAL
+      // +Z from the grip (build_instruments.py), which is already flat-on-the-
+      // tray once the group is placed. This used to be [-PI/2, 0, 0], which
+      // stood that long axis UP: the five tools rose 0.17 m off the delivery
+      // head like fence posts, and the suction and handpiece hoses hung
+      // through it. That is the "handpieces are sitting above the unit" bug.
+      //
+      // It also made them unpickable. Standing upright put their boxes inside
+      // the delivery arm's own mesh (Object_13, y 0.706..1.212); r3f sorts hits
+      // by distance and the arm is nearer, carries no handler, and swallowed
+      // the click. Lying flat they sit 26-50 mm proud of the bracket, clear of
+      // it.
       onPointerOver={(e: ThreeEvent<PointerEvent>) => {
         e.stopPropagation()
         onHover(inst.id)
       }}
       onPointerOut={() => onHover(null)}
       onClick={(e: ThreeEvent<MouseEvent>) => {
+        // stopPropagation INSIDE the guard. Outside it, a click before the plan
+        // was committed got eaten here and never reached anything else — no
+        // pick, no feedback, no fallthrough. Silently doing nothing is worse
+        // than being visibly locked.
+        if (!enabled) return
         e.stopPropagation()
-        if (enabled) onPick(inst.id)
+        onPick(inst.id)
       }}
     >
       <primitive object={node} />
       {/* An invisible slab gives each instrument a click target far bigger
           than its 6 mm handle. Raycasting a thin cylinder is the reason the
-          buttons felt hard. */}
+          buttons felt hard.
+          three raycasts invisible objects fine — it tests layers, never
+          `visible` — so this really is hittable.
+          The long side is Z because that is the instrument's own long axis; it
+          used to be sized for the rotated frame and stood up as a 7 cm column. */}
       <mesh visible={false}>
         <boxGeometry args={[0.07, 0.07, 0.34]} />
       </mesh>
