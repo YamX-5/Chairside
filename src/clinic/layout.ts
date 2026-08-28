@@ -1029,6 +1029,21 @@ export function blocked(x: number, z: number, radius: number): boolean {
 const FACING_BIAS = 0.55
 
 /**
+ * How squarely you must face something before it is offered at all.
+ *
+ * cos(65 degrees). Inside that cone the thing is in front of you; outside it,
+ * you are standing beside it with your back or shoulder turned, and a prompt is
+ * wrong however close you are. FACING_BIAS alone could not express this — it
+ * only reorders candidates, so the nearest zone won unconditionally when it was
+ * the only one in range. That is why walking past the glove box offered "put
+ * gloves on" while you were looking the other way.
+ *
+ * Deliberately generous: 65 degrees is wide enough that you do not have to aim,
+ * and narrow enough that turning away dismisses the prompt.
+ */
+const FACING_MIN = Math.cos((65 * Math.PI) / 180)
+
+/**
  * The interactable you are addressing, or null.
  *
  * Takes heading into account, because pure distance produced prompts that
@@ -1049,6 +1064,16 @@ export function nearestInteractable(x: number, z: number, yaw?: number): Interac
     const dz = it.z - z
     const d = Math.hypot(dx, dz)
     if (d >= it.radius) continue
+
+    if (yaw !== undefined && d > 1e-3) {
+      const facing = (dx / d) * fx + (dz / d) * fz
+      // A BIAS IS NOT ENOUGH ON ITS OWN. Reordering candidates by heading still
+      // offers you the only thing in range no matter which way you look, so
+      // walking past the glove box with your back to it prompted "put gloves
+      // on". Standing near something is not addressing it.
+      if (facing < FACING_MIN) continue
+    }
+
     const score =
       yaw === undefined || d <= 1e-3
         ? d

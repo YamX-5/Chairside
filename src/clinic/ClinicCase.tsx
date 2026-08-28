@@ -468,6 +468,33 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
         // Player's effect running you are staring out of the room at nothing.
         camera={{ fov: 72, near: 0.1, far: 60, position: [0.2, 1.62, 3] }}
         gl={{ antialias: false, toneMapping: NoToneMapping, powerPreference: 'high-performance' }}
+        // AIM FROM THE CROSSHAIR WHILE POINTER-LOCKED.
+        //
+        // r3f builds its pick ray from event.offsetX/offsetY. Under pointer lock
+        // the browser FREEZES those at wherever the cursor was when the lock
+        // engaged, so every click on desktop aimed at a stale point rather than
+        // at the crosshair — which is why clicking a drawer, a cabinet door or
+        // an instrument mostly did nothing on the laptop. The pointer never
+        // moves again, so no amount of aiming helps.
+        //
+        // Locked, the crosshair IS the pointer: cast from the centre of the
+        // screen. Unlocked, fall back to r3f's normal behaviour.
+        onCreated={({ setEvents }) => {
+          setEvents({
+            compute: (event, state) => {
+              if (document.pointerLockElement) {
+                state.pointer.set(0, 0)
+              } else {
+                const t = state.gl.domElement
+                state.pointer.set(
+                  (event.offsetX / t.clientWidth) * 2 - 1,
+                  -(event.offsetY / t.clientHeight) * 2 + 1,
+                )
+              }
+              state.raycaster.setFromCamera(state.pointer, state.camera)
+            },
+          })
+        }}
       >
         <color attach="background" args={['#f2e9dc']} />
         <fog attach="fog" args={[0xf2e9dc, 16, 34]} />

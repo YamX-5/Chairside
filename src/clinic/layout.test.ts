@@ -283,6 +283,33 @@ facesToward('stool', { x: CHAIR_POS[0], z: CHAIR_POS[2] }, 'stool -> patient')
 }
 
 // ---------------------------------------------------------------------------
+// Standing near something is not addressing it
+// ---------------------------------------------------------------------------
+//
+// Heading used to only REORDER candidates, so whatever was in range won
+// regardless of which way you looked — walking past the glove box with your
+// back to it offered "put gloves on".
+{
+  const gloves = INTERACTABLES.find((i) => i.id === 'gloves')!
+  // Stand just inside the zone, on the -Z side of it.
+  const from = { x: gloves.x, z: gloves.z + gloves.radius * 0.6 }
+
+  // Facing it: yaw PI looks toward +Z... movement's convention is forward = -Z
+  // at yaw 0, so looking from +Z back toward the box means facing -Z, yaw 0.
+  assert.equal(
+    nearestInteractable(from.x, from.z, 0),
+    'gloves',
+    'looking straight at the glove box should offer it',
+  )
+  // Turned around, same spot.
+  assert.notEqual(
+    nearestInteractable(from.x, from.z, Math.PI),
+    'gloves',
+    'with your back to the glove box it must not be offered',
+  )
+}
+
+// ---------------------------------------------------------------------------
 // You can stand up from every seat
 // ---------------------------------------------------------------------------
 //
