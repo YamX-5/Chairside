@@ -210,7 +210,9 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
   const seated = seatedId ? SEAT_BY_ID.get(seatedId) ?? null : null
   // Seated still counts as roaming for input purposes minus movement — see
   // Player's `frozen` prop: you can look around from a chair, you just can't walk.
-  const roaming = phase === 'deciding' && !reading && !studying
+  // filmOpen too: without it PointerLockControls stays mounted over the film, so
+  // the cursor is captured and the viewer's own Close button cannot be clicked.
+  const roaming = phase === 'deciding' && !reading && !studying && !filmOpen
 
   /**
    * E — use the thing you are standing at. Never the chart.
@@ -248,6 +250,15 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     // condition as the tray that renders it — hold an instrument the scene is
     // not drawing and you are holding nothing at all.
     if (nearestRef.current === 'xray' && called && arrival >= 1) {
+      // Gated on `planned` like every other instrument — the comment above
+      // always claimed it was, and it was not. Picking the X-ray up before a
+      // plan existed meant E at the chair fell past the `planned && heldId`
+      // guard all the way to nearestSeat, which silently sat the player on the
+      // stool instead of shooting a film. Putting it BACK stays allowed.
+      if (!planned && heldId !== 'xray') {
+        setBlockedNote(true)
+        return
+      }
       setHeldId((h) => (h === 'xray' ? null : 'xray'))
       return
     }
@@ -293,7 +304,11 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     // so a seat next to the tray never steals the pick-up.
     const seat = nearestSeat(camPosRef.current.x, camPosRef.current.z)
     if (seat) setSeatedId(seat.id)
-  }, [day, phase, planned, heldId, seatedId])
+  // `called` and `arrival` ARE read by the X-ray branch above, so they belong
+  // in the dep list. Without them the memoised closure kept called=false and
+  // arrival=0 from before the walk-in, so pressing E at the bookcase did
+  // literally nothing — while the prompt still said "Take the portable X-ray".
+  }, [day, phase, planned, heldId, seatedId, called, arrival])
 
   // The nudge clears itself. A message that stays put reads as an error state.
   useEffect(() => {
