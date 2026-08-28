@@ -466,6 +466,17 @@ export type InteractableId =
   | 'xray'
   | 'cabinet'
 
+/**
+ * The middle of the instrument drawer's front, in world X.
+ *
+ * MEASURED off sterilization_centre.glb: the 'Material_005-material' node spans
+ * x 0.974..1.447. Hoisted above INTERACTABLES because both the standing spot and
+ * DRAWER_SHELF derive from it, and they must not be able to drift apart — the
+ * prompt standing in front of one drawer while the contents render in another is
+ * the exact bug this replaces.
+ */
+export const INSTRUMENT_DRAWER_X = (0.974 + 1.447) / 2
+
 export interface Interactable {
   id: InteractableId
   /** Where the thing is; the prompt shows when the player is within radius. */
@@ -522,12 +533,25 @@ export const INTERACTABLES: Interactable[] = [
   // inside the EtO cart's footprint — an interactable you cannot stand at is an
   // interactable that does not exist.
   {
+    // IN FRONT OF THE DRAWER THE INSTRUMENTS ARE ACTUALLY IN.
+    //
+    // This stood at x -1.3, dead centre of Drawer_00 — an EMPTY drawer 2.5 m
+    // along the bench from the one holding the periodontal probe, the scaler and
+    // the forceps. Pressing E opened that empty drawer, `drawerOpen` (which
+    // reads INSTRUMENT_DRAWER) stayed false, and those three instruments were
+    // never rendered at all. "I cannot find them" was exactly right: they were
+    // behind a drawer nothing in the game prompted for, and on a phone — where
+    // the interact button can only fire this one openable — they were
+    // unreachable entirely.
+    //
+    // DERIVED from DRAWER_SHELF so the standing spot cannot drift away from the
+    // drawer again.
     id: 'drawer',
-    x: -1.3,
+    x: INSTRUMENT_DRAWER_X,
     z: STATION.maxZ + 0.45,
     radius: 0.8,
     // The drawer front itself, 0.45 m behind where you stand.
-    look: { x: -1.3, z: STATION.maxZ },
+    look: { x: INSTRUMENT_DRAWER_X, z: STATION.maxZ },
   },
   // The portable X-ray, on top of the bookcase. Replaces the 'board' zone that
   // used to be here: that one had no branch in interact() — a prompt that could
@@ -759,14 +783,6 @@ export const OPENABLES: Openable[] = [
   },
 ]
 
-/**
- * The one part the 'drawer' prompt opens when you press E at the station.
- *
- * A specific part, not a "section". Opening a section flung the drawer and both
- * cupboards above it open together, which is not what reaching for a drawer
- * looks like. Everything else on the run is opened by clicking it.
- */
-export const DRAWER_PROMPT_OPENS = 'Drawer_00'
 
 /**
  * The drawer the clinical instruments live in, and where they lie inside it.
@@ -784,8 +800,24 @@ export const DRAWER_PROMPT_OPENS = 'Drawer_00'
  * 0.42 s discrepancy on opening is not worth that.
  */
 export const INSTRUMENT_DRAWER = 'Material_005-material'
+
+/**
+ * The one part the 'drawer' prompt opens when you press E at the station.
+ *
+ * A specific part, not a "section". Opening a section flung the drawer and both
+ * cupboards above it open together, which is not what reaching for a drawer
+ * looks like. Everything else on the run is opened by clicking it.
+ *
+ * IT IS THE INSTRUMENT DRAWER, and it is written as a reference rather than
+ * repeated, because these two being different strings is what hid three
+ * instruments. It used to be 'Drawer_00' — an empty drawer 2.5 m along the same
+ * bench.
+ */
+export const DRAWER_PROMPT_OPENS = INSTRUMENT_DRAWER
 export const DRAWER_SHELF = {
-  x: (0.974 + 1.447) / 2,
+  // Same source as the standing spot. Repeating the literal is how the prompt
+  // ended up in front of a different drawer from the contents.
+  x: INSTRUMENT_DRAWER_X,
   y: 0.5,
   z: STATION_ORIGIN_Z + 0.39 + 0.18,
   yaw: 0,
