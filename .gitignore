@@ -50,3 +50,8 @@ scripts/tmp/
 # Raw animation-pack archives dropped into assets/incoming for conversion.
 # The converted .glb under public/models is what ships.
 assets/incoming/*.zip
+
+# Blender preview renders and the scene dump that feeds them.
+preview/
+scene.json
+scene.err

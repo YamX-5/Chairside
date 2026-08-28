@@ -55,6 +55,19 @@ else:
     bpy.ops.import_scene.fbx(filepath=SRC, automatic_bone_orientation=True)
     log('imported via import_scene.fbx')
 
+# A GUARD, NOT A FIX. Every shipped cast .glb was checked through three's own
+# loader and contains only skinned character meshes — no strays. This keeps it
+# that way: if a future source file carries a helper object (a preview sphere, a
+# reference plane), it does not silently become 0.35 m of geometry standing in
+# the operatory.
+#
+# The character is the SKINNED mesh — the one with an Armature modifier. Anything
+# else in the file belongs to whoever authored it, not to this game.
+for o in [x for x in bpy.data.objects if x.type == 'MESH']:
+    if not any(m.type == 'ARMATURE' for m in o.modifiers):
+        log('dropping non-character mesh %r' % o.name)
+        bpy.data.objects.remove(o, do_unlink=True)
+
 meshes = [o for o in bpy.data.objects if o.type == 'MESH']
 arms = [o for o in bpy.data.objects if o.type == 'ARMATURE']
 log('meshes', [o.name for o in meshes])
