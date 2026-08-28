@@ -195,6 +195,8 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
    * makes E work on instruments at all — see the pick-up branch in interact().
    */
   const hoverInstrumentRef = useRef<InstrumentId | null>(null)
+  /** Same thing as state, so the HUD can name what the crosshair is on. */
+  const [aimedInstrument, setAimedInstrument] = useState<InstrumentId | null>(null)
   const [reading, setReading] = useState(false)
   const [page, setPage] = useState<Page>('history')
   const [tabled, setTabled] = useState<Set<string>>(new Set())
@@ -532,7 +534,22 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
    * language. Read by BOTH the desktop prompt and the touch button — a phone
    * showing a different verb from the keyboard would be two designs.
    */
-  const activePrompt = promptFor({
+  /**
+   * What you are AIMING at beats what you are standing near.
+   *
+   * The room's prompt used to describe the zone you were in, so looking straight
+   * at the high-speed handpiece said "open the drawer" — or nothing. Naming the
+   * thing under the crosshair is the whole answer to "there should be something
+   * saying hold high speed", and it doubles as the touch button's label.
+   */
+  const aimed = aimedInstrument ? INSTRUMENT_BY_ID.get(aimedInstrument) : undefined
+  const aimedPrompt = aimed
+    ? heldId === aimed.id
+      ? { en: `Put the ${aimed.label.toLowerCase()} back`, ar: `أعد ${aimed.labelAr}` }
+      : { en: `Hold the ${aimed.label.toLowerCase()}`, ar: `أمسك ${aimed.labelAr}` }
+    : null
+
+  const zonePrompt = promptFor({
     near,
     gloved,
     holding: heldId,
@@ -545,6 +562,8 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     seat: nearSeat,
     seated: seatedId !== null,
   })
+
+  const activePrompt = aimedPrompt ?? zonePrompt
 
   return (
     <div className="clinic-root" style={S.root}>
@@ -691,6 +710,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             closetOpen={CABINET_DOOR_IDS.some((id) => openIds.has(id))}
             drawerOpen={openIds.has(INSTRUMENT_DRAWER)}
             hoverRef={hoverInstrumentRef}
+            onHoverChange={setAimedInstrument}
           />
         )}
 

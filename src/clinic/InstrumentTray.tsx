@@ -242,6 +242,15 @@ interface Props {
    * geometry, no new zone, and no second source of truth about what is in reach.
    */
   hoverRef?: RefObject<InstrumentId | null>
+  /**
+   * Told when the crosshair moves onto or off an instrument.
+   *
+   * Separate from hoverRef, and state rather than a ref, because the HUD has to
+   * RE-RENDER to name what you are aiming at — "there should be something saying
+   * hold high speed". It fires only when the id actually changes, so it costs
+   * one render per instrument you look at, not one per frame.
+   */
+  onHoverChange?: (id: InstrumentId | null) => void
 }
 
 export function InstrumentTray({
@@ -252,6 +261,7 @@ export function InstrumentTray({
   closetOpen,
   drawerOpen,
   hoverRef,
+  onHoverChange,
 }: Props) {
   const gltf = useOptionalGLTF(`${BASE}models/instruments.glb`)
 
@@ -272,6 +282,11 @@ export function InstrumentTray({
   // effect would leave it a frame stale — which on a fast flick is the
   // difference between taking the mirror and taking nothing.
   if (hoverRef) hoverRef.current = hover
+  // An effect, not a render-time call: telling the parent during render would
+  // set state inside a render and React would warn (rightly).
+  useEffect(() => {
+    onHoverChange?.(hover)
+  }, [hover, onHoverChange])
   const heldRef = useRef<Group>(null)
   const { camera } = useThree()
 

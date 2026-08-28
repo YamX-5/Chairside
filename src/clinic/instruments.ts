@@ -97,6 +97,15 @@ export interface Instrument {
    */
   rot?: [number, number, number]
   label: string
+  /**
+   * The same name in Arabic. Required, not optional: this game ships both
+   * locales in the same change or neither, and a crosshair that names the tool
+   * in English only is a room that is half translated.
+   *
+   * YAMAN SHOULD CHECK THESE. They are standard terms, but he is the dentist and
+   * I am not — a wrong instrument name in a teaching tool teaches the wrong word.
+   */
+  labelAr: string
   /** Shown when held, so picking one up teaches what it is for. */
   use: string
   /**
@@ -119,10 +128,10 @@ export interface Instrument {
 export const INSTRUMENTS: Instrument[] = [
   // The set-up tray: mirror, probe and suction are on every tray in every
   // surgery, plus whatever the day's work needs.
-  { id: 'mirror', node: 'Mirror', label: 'Mouth mirror', use: 'See what you are doing', storage: 'tray' },
-  { id: 'probe', node: 'Probe', label: 'Explorer', use: 'Feel for cavitation and soft dentine', storage: 'tray' },
-  { id: 'suction', node: 'Suction', label: 'Suction', use: 'Keep the field dry and visible', storage: 'tray' },
-  { id: 'syringe', node: 'Syringe', label: 'Anaesthetic syringe', use: 'Numb the tooth before you touch it', storage: 'tray' },
+  { id: 'mirror', node: 'Mirror', label: 'Mouth mirror', labelAr: 'مرآة فموية', use: 'See what you are doing', storage: 'tray' },
+  { id: 'probe', node: 'Probe', label: 'Explorer', labelAr: 'مسبار', use: 'Feel for cavitation and soft dentine', storage: 'tray' },
+  { id: 'suction', node: 'Suction', label: 'Suction', labelAr: 'شفاط', use: 'Keep the field dry and visible', storage: 'tray' },
+  { id: 'syringe', node: 'Syringe', label: 'Anaesthetic syringe', labelAr: 'محقنة تخدير', use: 'Numb the tooth before you touch it', storage: 'tray' },
   // THE DELIVERY BAR HOLDS MORE THAN ONE THING. It had exactly one entry, so
   // there was one click target on the whole unit — "I cannot hold any of it,
   // either the high speed, the low speed, or the water pump".
@@ -133,24 +142,24 @@ export const INSTRUMENTS: Instrument[] = [
   // exactly the kind of thing this project forbids — so these two are holdable
   // and usable, and which one a procedure REQUIRES stays as it was until Yaman
   // says otherwise.
-  { id: 'handpiece', node: 'Handpiece', label: 'Slow handpiece', use: 'Remove caries, prepare the tooth', storage: 'unit' },
-  { id: 'highSpeed', node: 'HighSpeed', label: 'High-speed handpiece', use: 'Cut enamel and gain access', storage: 'unit' },
-  { id: 'triplex', node: 'Triplex', label: 'Air-water syringe', use: 'Rinse and dry the field', storage: 'unit' },
+  { id: 'handpiece', node: 'Handpiece', label: 'Slow handpiece', labelAr: 'قبضة بطيئة', use: 'Remove caries, prepare the tooth', storage: 'unit' },
+  { id: 'highSpeed', node: 'HighSpeed', label: 'High-speed handpiece', labelAr: 'قبضة سريعة', use: 'Cut enamel and gain access', storage: 'unit' },
+  { id: 'triplex', node: 'Triplex', label: 'Air-water syringe', labelAr: 'سرنجة هواء وماء', use: 'Rinse and dry the field', storage: 'unit' },
 
   // Fetched from the cabinet when the plan calls for them.
-  { id: 'perioProbe', node: 'PerioProbe', label: 'Periodontal probe', use: 'Measure pocket depths', storage: 'drawer' },
-  { id: 'scaler', node: 'Scaler', label: 'Scaler', use: 'Remove calculus above and below the gum', storage: 'drawer' },
-  { id: 'forceps', node: 'Forceps', label: 'Extraction forceps', use: 'Remove a tooth. Irreversible.', storage: 'drawer' },
+  { id: 'perioProbe', node: 'PerioProbe', label: 'Periodontal probe', labelAr: 'مسبار لثوي', use: 'Measure pocket depths', storage: 'drawer' },
+  { id: 'scaler', node: 'Scaler', label: 'Scaler', labelAr: 'مقشطة', use: 'Remove calculus above and below the gum', storage: 'drawer' },
+  { id: 'forceps', node: 'Forceps', label: 'Extraction forceps', labelAr: 'كلاّبة قلع', use: 'Remove a tooth. Irreversible.', storage: 'drawer' },
   // REAL GEOMETRY at last. props/axe.glb (Quaternius, CC0) has shipped since the
   // cabinet commit but nothing could load it: external models were pinned to a
   // single hard-coded slot occupied by the X-ray. `node` stays as the fallback
   // for a build where the file is missing.
-  { id: 'axe', node: 'Axe', model: 'props/axe.glb', rot: [Math.PI / 2, 0, 0], label: 'Axe', use: 'No.', absurd: true, storage: 'closet' },
+  { id: 'axe', node: 'Axe', model: 'props/axe.glb', rot: [Math.PI / 2, 0, 0], label: 'Axe', labelAr: 'فأس', use: 'No.', absurd: true, storage: 'closet' },
   // The safety kit, now something you can actually pick up rather than scenery
   // you walk past. It is NOT absurd — a first-aid kit in a clinic is the one
   // thing in that cabinet that belongs there — but nothing requires it either,
   // so taking it is a choice with no clinical consequence.
-  { id: 'firstAid', node: 'FirstAid', model: 'props/first_aid_kit.glb', label: 'First-aid kit', use: 'Not for teeth. Reassuring to have.', storage: 'closet' },
+  { id: 'firstAid', node: 'FirstAid', model: 'props/first_aid_kit.glb', label: 'First-aid kit', labelAr: 'حقيبة إسعافات أولية', use: 'Not for teeth. Reassuring to have.', storage: 'closet' },
 
 
   // On its cradle on the wall shelf. Diagnostic, not operative -- it is the one
@@ -160,6 +169,7 @@ export const INSTRUMENTS: Instrument[] = [
     node: 'PortableXray',
     model: 'props/portable_xray.glb',
     label: 'Portable X-ray',
+    labelAr: 'جهاز أشعة محمول',
     use: 'Take a radiograph — see the tooth you cannot see',
     storage: 'shelf',
   },
