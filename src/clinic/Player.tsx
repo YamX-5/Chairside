@@ -2,11 +2,29 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import { BOUND, EYE_HEIGHT, PLAYER_RADIUS, WALK_SPEED } from './theme3d'
-import { nearestInteractable, nearestSeat, SPAWN, type InteractableId } from './layout'
+import {
+  nearestInteractable,
+  nearestSeat,
+  SPAWN,
+  stoolPose,
+  type InteractableId,
+  type Seat,
+} from './layout'
+import { moveFocusOrigin } from './CameraFocus'
 import { moveInput, touchLook } from './input'
 import { headBob, smoothInput, stepPlayer, type Point } from './movement'
 
 const STEP_OPTS = { speed: WALK_SPEED, radius: PLAYER_RADIUS, bound: BOUND }
+/**
+ * Shoving a wheeled stool with your feet, in metres per second.
+ *
+ * Deliberately well under WALK_SPEED (2.6): you are pushing off the floor while
+ * sitting on the thing, not walking. Same radius and same colliders, so the
+ * stool cannot be rolled through the dental unit or the worktop.
+ */
+const ROLL_OPTS = { speed: 1.35, radius: PLAYER_RADIUS, bound: BOUND }
+/** Castors coast. Softer on both ends than legs — see smoothInput. */
+const ROLL_FEEL = { accel: 4.5, decel: 6 }
 /** Getting going takes a beat; stopping does not. See smoothInput. */
 const FEEL = { accel: 7.5, decel: 12 }
 
@@ -26,12 +44,17 @@ interface Props {
    */
   posRef?: RefObject<{ x: number; z: number }>
   /**
-   * Seated: keep looking, stop walking.
+   * The seat you are on, or null when standing.
    *
    * Different from `paused`, which surrenders the camera entirely. Sitting moves
-   * you into a chair but leaves your head your own.
+   * you into a chair but leaves your head your own — and, if that chair is on
+   * castors, your feet too.
+   *
+   * This was a bare `frozen: boolean`, which is why the stool could not be
+   * rolled: with only "seated or not" there was nothing to distinguish a stool
+   * from a desk chair bolted under a desk.
    */
-  frozen?: boolean
+  seated?: Seat | null
 }
 
 const LOOK_SENSITIVITY = 0.0032
@@ -47,7 +70,7 @@ export function Player({
   onNearChange,
   onNearSeatChange,
   posRef,
-  frozen = false,
+  seated = null,
 }: Props) {
   const camera = useThree((s) => s.camera)
   const yaw = useRef(SPAWN.yaw)
@@ -117,10 +140,33 @@ export function Player({
       posRef.current.z = camera.position.z
     }
 
-    // Seated: CameraFocus owns position, so writing it here would fight. Look
-    // still works because that is PointerLockControls, not this.
-    if (frozen) {
-      vel.current = { x: 0, z: 0 }
+    if (seated) {
+      // A fixed chair: CameraFocus owns position, so writing it here would
+      // fight. Look still works, because that is PointerLockControls, not this.
+      if (!seated.rolls) {
+        vel.current = { x: 0, z: 0 }
+        return
+      }
+
+      // A stool on castors. CameraFocus has already landed and early-returns
+      // once settled, so nothing else is writing the camera and we can own it.
+      //
+      // Height is pinned to the SEAT, not EYE_HEIGHT, and there is no head bob:
+      // rolling is a glide, and bobbing while seated reads as the chair
+      // bouncing. Everything else — easing, collision, the room bound — is the
+      // same code path as walking, so the stool cannot be parked inside a wall.
+      vel.current = smoothInput(vel.current, moveInput, delta, ROLL_FEEL)
+      const seat = { x: camera.position.x, z: camera.position.z }
+      const to = stepPlayer(seat, yawNow, vel.current, delta, ROLL_OPTS)
+      camera.position.set(to.x, seated.eye.y, to.z)
+      stoolPose.x = to.x
+      stoolPose.z = to.z
+      // Stand up where the stool ended up, not where you first sat down.
+      moveFocusOrigin(to.x, to.z)
+      if (posRef) {
+        posRef.current.x = to.x
+        posRef.current.z = to.z
+      }
       return
     }
 

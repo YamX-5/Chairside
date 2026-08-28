@@ -84,6 +84,27 @@ export const STOOL_POS: [number, number, number] = [
 ]
 export const STOOL_YAW = -Math.PI / 2
 
+/**
+ * Where the stool ACTUALLY is right now, as opposed to where it was placed.
+ *
+ * Mutable and module-level on purpose, the same trade `input.ts` makes: the
+ * render loop reads this every frame, and routing it through React state would
+ * re-render the whole scene sixty times a second, which is the one thing you
+ * must never do in r3f.
+ *
+ * STOOL_POS stays the constant the lighting bake and placement.test are written
+ * against — the stool's occlusion was computed where it was PLACED, and that
+ * does not stop being true because a player shoved it. This is the live pose on
+ * top of it.
+ */
+export const stoolPose = { x: STOOL_POS[0], z: STOOL_POS[2] }
+
+/** Put the stool back where the room was built. Called when a case starts. */
+export function resetStoolPose(): void {
+  stoolPose.x = STOOL_POS[0]
+  stoolPose.z = STOOL_POS[2]
+}
+
 /** Where the patient sits, in world space. Derived. */
 export const SEAT_WORLD: [number, number, number] = [
   CHAIR_POS[0] + SEAT_LOCAL[0],
@@ -939,6 +960,19 @@ export interface Seat {
   eye: { x: number; y: number; z: number }
   /** Which way you face while sitting, radians. 0 = looking -Z. */
   yaw: number
+  /**
+   * This seat is on castors: you can shove it around while sitting on it.
+   *
+   * An operator's stool you cannot reposition from the seat is the wrong
+   * object — rolling it is HOW you work at a chairside, and being pinned to one
+   * spot the moment you sat down was the complaint. The desk chair is tucked
+   * under a desk and stays put.
+   *
+   * For a rolling seat the `approach` and `eye` above are its STARTING pose
+   * only. Read them through seatApproach/seatEye, never directly, or you get the
+   * spot the stool was built at rather than the spot it is now.
+   */
+  rolls?: boolean
 }
 
 /**
@@ -978,17 +1012,36 @@ export const SEATS: Seat[] = [
     // camera sat 310 mm below the seat it was supposed to be on.
     eye: { x: STOOL_POS[0], y: 1.31, z: STOOL_POS[2] },
     yaw: -Math.PI / 2,
+    rolls: true,
   },
 ]
 
 export const SEAT_BY_ID = new Map(SEATS.map((s) => [s.id, s]))
+
+/**
+ * Where you stand to sit on this seat, RIGHT NOW.
+ *
+ * A rolling seat carries its approach with it. Without this the stool's trigger
+ * stays pinned to the spot the room was built at, so shoving the stool up the
+ * chairside and standing up leaves you unable to sit back down on it — the seat
+ * is beside you and the thing that offers it is across the room.
+ */
+export function seatApproach(s: Seat): { x: number; z: number } {
+  return s.rolls ? { x: stoolPose.x - 0.1, z: stoolPose.z } : s.approach
+}
+
+/** Where the eyes end up on this seat, RIGHT NOW. Same reason as seatApproach. */
+export function seatEye(s: Seat): { x: number; y: number; z: number } {
+  return s.rolls ? { x: stoolPose.x, y: s.eye.y, z: stoolPose.z } : s.eye
+}
 
 /** The nearest seat you could sit on from here, or null. */
 export function nearestSeat(x: number, z: number, radius = 1.1): Seat | null {
   let best: Seat | null = null
   let bestDist = Infinity
   for (const s of SEATS) {
-    const d = Math.hypot(s.approach.x - x, s.approach.z - z)
+    const a = seatApproach(s)
+    const d = Math.hypot(a.x - x, a.z - z)
     if (d < radius && d < bestDist) {
       bestDist = d
       best = s

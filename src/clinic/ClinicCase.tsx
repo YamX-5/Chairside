@@ -50,6 +50,8 @@ import {
   SCREEN_ANCHOR,
   nearestSeat,
   SEAT_BY_ID,
+  seatEye,
+  resetStoolPose,
   SPAWN,
   type InteractableId,
 } from './layout'
@@ -309,6 +311,16 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
   // arrival=0 from before the walk-in, so pressing E at the bookcase did
   // literally nothing — while the prompt still said "Take the portable X-ray".
   }, [day, phase, planned, heldId, seatedId, called, arrival])
+
+  // Every case starts with the stool where the room was built.
+  //
+  // `stoolPose` is module-level, so it outlives this component: without a reset
+  // a stool shoved into the corner on day one is still in the corner on day two,
+  // and the baked occlusion under it is not.
+  useEffect(() => {
+    resetStoolPose()
+    return resetStoolPose
+  }, [])
 
   // The nudge clears itself. A message that stays put reads as an error state.
   useEffect(() => {
@@ -637,12 +649,14 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
                 }
               : seated
                 ? {
-                    position: [seated.eye.x, seated.eye.y, seated.eye.z],
+                    // seatEye, not seated.eye: the stool is where it was last
+                    // rolled to, which is not where the room was built.
+                    position: [seatEye(seated).x, seatEye(seated).y, seatEye(seated).z],
                     // Look one metre ahead along the seat's facing.
                     lookAt: [
-                      seated.eye.x - Math.sin(seated.yaw),
-                      seated.eye.y - 0.15,
-                      seated.eye.z - Math.cos(seated.yaw),
+                      seatEye(seated).x - Math.sin(seated.yaw),
+                      seatEye(seated).y - 0.15,
+                      seatEye(seated).z - Math.cos(seated.yaw),
                     ],
                     // Sitting moves you; it does not take your head.
                     free: true,
@@ -658,7 +672,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
           onNearChange={setNear}
           onNearSeatChange={setNearSeat}
           posRef={camPosRef}
-          frozen={seatedId !== null}
+          seated={seated}
         />
         {roaming && !isTouch && <PointerLockControls />}
         <DevProbe />

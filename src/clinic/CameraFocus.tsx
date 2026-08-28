@@ -47,6 +47,23 @@ const lookTarget = new Vector3()
 const up = new Vector3(0, 1, 0)
 const tmpEuler = new Euler()
 
+/**
+ * Move the remembered standing spot, without disturbing anything else about it.
+ *
+ * Exit restores `saved.pos`, which is where the player stood when they sat down.
+ * That is right for a fixed chair and wrong for one on castors: roll the stool
+ * two metres up the chairside, stand up, and you would be snapped back to where
+ * the stool used to be — through the dental unit on the way.
+ *
+ * Player calls this every frame it rolls. Only x and z move; y stays at standing
+ * eye height, which is exactly what standing up should restore.
+ */
+export function moveFocusOrigin(x: number, z: number): void {
+  if (!saved.valid) return
+  saved.pos.x = x
+  saved.pos.z = z
+}
+
 export function CameraFocus({ target }: { target: FocusTarget | null }) {
   const k = useRef(0)
   /** Has a `free` target finished landing? See the snap in the free branch. */
