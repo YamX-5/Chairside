@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from 'reac
 import { useFrame } from '@react-three/fiber'
 import {
   AnimationMixer,
+  Euler,
   Group,
   LoopOnce,
   Object3D,
+  Quaternion,
   Vector3,
   type AnimationAction,
 } from 'three'
@@ -13,7 +15,7 @@ import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
 import { findParts, type RigParts } from './patientBones'
 import { CHAIR_FACING, DOORWAY, DOORWAY_ENTRY_Z, SEAT_WORLD } from './layout'
-import { CLIPS, DEFAULT_PATIENT_ID, castScale, lookFor } from './cast3d'
+import { CAST_FACING_OFFSET, CLIPS, DEFAULT_PATIENT_ID, castScale, lookFor } from './cast3d'
 import type { ReactionPose } from './reaction'
 
 /**
@@ -88,6 +90,19 @@ const BASE = import.meta.env.BASE_URL
  */
 const SEAT = SEAT_WORLD
 const FACING = CHAIR_FACING
+
+/**
+ * Where she is actually anchored: the FLOOR under the seat, not the cushion.
+ *
+ * She plants her own feet — measured at 0.054 file units in every clip, sitting
+ * included — so the model belongs at floor level and the sit puts her pelvis on
+ * the cushion by itself. See SEATED_PELVIS_UNITS in cast3d.ts.
+ */
+const FLOOR_UNDER_SEAT: [number, number, number] = [SEAT[0], 0, SEAT[2]]
+
+/** Reused across frames — see the head block in the frame loop. */
+const HEAD_TILT = new Euler(0, 0, 0, 'YXZ')
+const HEAD_Q = new Quaternion()
 
 /**
  * The doorway, expressed in the rotated frame she sits in.
@@ -268,10 +283,25 @@ export function PatientRig({
     const idlePitch = Math.sin(t * 0.23) * 0.025
 
     if (p.head) {
-      p.head.rotation.y += idleYaw * (1 - brace)
-      // The reaction's pitch throws the head back HARDER than the body, which
-      // is what makes a recoil read from across the room.
-      p.head.rotation.x += idlePitch + (pose?.pitch ?? 0) * 0.55
+      // MULTIPLY A QUATERNION, do not add to Euler angles.
+      //
+      // `rotation.x +=` decomposes whatever the mixer just wrote into XYZ Euler
+      // and adds to one component. That is fine when the base pose is near
+      // identity and wrong when it is not — and the seated pose rotates the head
+      // substantially, so the added pitch and yaw came out about the wrong axes
+      // and compounded. On screen that is a head lolling off at an angle no neck
+      // makes: "sometimes you see he has a broken neck".
+      //
+      // Composing in the bone's OWN frame is correct for any base pose, and it
+      // is also what "nod" and "turn your head" actually mean.
+      HEAD_TILT.set(
+        idlePitch + (pose?.pitch ?? 0) * 0.55,
+        idleYaw * (1 - brace),
+        0,
+        'YXZ',
+      )
+      HEAD_Q.setFromEuler(HEAD_TILT)
+      p.head.quaternion.multiply(HEAD_Q)
     }
 
     // Bracing: arms pull in and grip.
@@ -302,13 +332,16 @@ export function PatientRig({
       // (measured: the rest bbox spans y -0.001 .. 1.770), so holding her there
       // while she crosses the room walks her through the air. Drop her to the
       // floor for the walk and lift her onto the cushion as she sits.
-      const sit =
-        a <= SIT_STARTS_AT ? 0 : (a - SIT_STARTS_AT) / (1 - SIT_STARTS_AT)
-      walk.position.set(
-        DOOR_LOCAL.x * (1 - e),
-        -SEAT[1] * (1 - sit),
-        DOOR_LOCAL.z * (1 - e),
-      )
+      // NO VERTICAL RAMP ANY MORE. This used to lift her from the floor onto
+      // the cushion as she sat, which was right for the Mixamo clip — its sit
+      // was authored around the model's origin. The Quaternius sit is a REAL
+      // sit: measured in Blender, the pelvis drops from 1.959 to 1.102 file
+      // units while the feet stay planted at 0.054. Lifting him as well put his
+      // feet at cushion height and his pelvis 0.40 m above that, hovering over
+      // the chair with his legs sticking out — "he is standing up in the chair".
+      // He plants his own feet in every clip, so he belongs on the floor in all
+      // of them.
+      walk.position.set(DOOR_LOCAL.x * (1 - e), 0, DOOR_LOCAL.z * (1 - e))
       // She turns to face the chair as she arrives, rather than gliding in
       // already-oriented like a chess piece.
       walk.rotation.y = (1 - e) * -0.9
@@ -324,7 +357,7 @@ export function PatientRig({
   // offsets. Keeping them separate means a recoil rotates around her own body
   // rather than swinging her around the centre of the room.
   return (
-    <group position={SEAT} rotation={[0, FACING, 0]}>
+    <group position={FLOOR_UNDER_SEAT} rotation={[0, FACING + CAST_FACING_OFFSET, 0]}>
       <group ref={walkIn}>
         <group ref={group}>
           {/* SCALE INNERMOST, deliberately.

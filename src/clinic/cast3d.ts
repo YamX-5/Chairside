@@ -75,8 +75,10 @@ export const CAST_LOOKS: Record<string, CastLook> = {
   // Sara, 31 — whitening before a wedding.
   'patient-7': { model: 'female_alternative', sex: 'female', height: 1.66 },
   // Mr Haddad, 50 — cracked a tooth, checks his watch. The clinic's one wired
-  // case at the moment.
-  'patient-8': { model: 'male_suit', sex: 'male', height: 1.76 },
+  // case at the moment. 1.70 rather than 1.76: at his old height he read as
+  // looming over the chair, and these are stylised proportions with a large
+  // head, so they carry more visual weight per metre than a realistic figure.
+  'patient-8': { model: 'male_suit', sex: 'male', height: 1.7 },
 }
 
 /** The patient the clinic runs when nothing else is chosen. */
@@ -120,3 +122,41 @@ export const CLIPS = {
 
 /** How far into `Sitting` she is actually seated, in seconds. Measured. */
 export const SIT_SETTLES_AT = 0.4
+
+/**
+ * Extra yaw so the character faces the way the CHAIR says it faces.
+ *
+ * MEASURED, in Blender, off the seated pose — not guessed, because guessing a
+ * 180 is how you ship it wrong twice. In the Sitting pose the mesh spans
+ * y -0.529..1.219 in Blender: the body reaches forward along +Y. The glTF
+ * exporter converts Blender (x, y, z) to (x, z, -y), so +Y becomes -Z and the
+ * character faces -Z at yaw 0.
+ *
+ * CHAIR_FACING is 0 and documents itself as "feet point +Z, toward the door". So
+ * the character was pointing at the sterilising run with his back to the room —
+ * "he is facing the cabinet, it should be facing the outer door".
+ *
+ * This lives HERE and not in CHAIR_FACING because it is a property of the MESH,
+ * not of the furniture. Swap in a character authored facing +Z and this is the
+ * one number that changes; the chair does not move.
+ */
+export const CAST_FACING_OFFSET = Math.PI
+
+/**
+ * How high the pelvis sits above the model's origin in the seated pose, in FILE
+ * units, and where the feet end up. Both measured off male_suit.glb.
+ *
+ * The point of writing them down: the sit is a real sit. The pelvis drops from
+ * 1.959 standing to 1.102 seated while the feet stay planted at 0.054 — the legs
+ * rotate and the body lowers onto them. At a 1.70 m character that is a pelvis
+ * 0.387 m off the floor, and the chair's cushion is at 0.370 m. He fits the
+ * chair as authored, with his feet on the floor.
+ *
+ * Which is why the rig anchors him at FLOOR level and not on the cushion. Lifting
+ * him onto the seat — correct for the old Mixamo clip, whose sit was authored
+ * around its origin — put his feet at cushion height and his pelvis 0.40 m above
+ * that, hovering over the chair with his legs out. That is the "he is standing
+ * up in the chair" report.
+ */
+export const SEATED_PELVIS_UNITS = 1.1021
+export const SEATED_FEET_UNITS = 0.0542
