@@ -33,14 +33,38 @@ const clinic = readFileSync('src/clinic/ClinicCase.tsx', 'utf8')
 // ---------------------------------------------------------------------------
 
 {
-  const mount = clinic.match(/\{\(day === 'clinic' \|\| day === 'done'\) && \(\s*<InstrumentTray/)
+  // The mount must carry NO condition at all. Gating it on the day is the same
+  // bug one layer down — the player starts in the morning.
+  const mount = clinic.match(/\{\(\s*<InstrumentTray/)
   assert.ok(
     mount,
-    'InstrumentTray is no longer mounted for the whole clinic day. If it is ' +
-      'gated on `called` or `arrival` again, there is no instrument geometry in ' +
-      'the room until the patient has walked in — nothing to look at, nothing ' +
-      'to click, and no message saying why.',
+    'InstrumentTray is conditionally mounted again. Every condition here has ' +
+      'been a round of "I cannot hold anything": first `called && arrival`, ' +
+      'then `day === clinic`. Instruments are objects in a room; they exist.',
   )
+  // And nothing gate-shaped in the JSX immediately before it. Plain string
+  // checks rather than a regex: the point is legibility, and the last version of
+  // this line was an unreadable pile of escapes that did not even parse.
+  const before = clinic.slice(
+    Math.max(0, clinic.indexOf('<InstrumentTray') - 240),
+    clinic.indexOf('<InstrumentTray'),
+  )
+  const code = before
+    .split(/\r?\n/)
+    .filter(
+      (l) =>
+        !l.trim().startsWith('//') &&
+        !l.trim().startsWith('*') &&
+        !l.trim().startsWith('/*'),
+    )
+    .join(' ')
+  for (const gate of ['called', 'arrival', "day ===", 'planned']) {
+    assert.ok(
+      !code.includes(gate),
+      `InstrumentTray looks gated on \`${gate}\` again. Every condition here has ` +
+        `been a round of "I cannot hold anything".`,
+    )
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -98,7 +122,7 @@ const clinic = readFileSync('src/clinic/ClinicCase.tsx', 'utf8')
 }
 
 console.log(
-  `holding.test.ts — tray mounts for the clinic day, pick-up ungated, ` +
+  `holding.test.ts — tray mounts unconditionally, pick-up ungated, ` +
     `treatment still gated on a plan, ${INSTRUMENTS.length} instruments all ` +
     `placed, all assertions passed`,
 )

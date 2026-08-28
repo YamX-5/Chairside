@@ -702,7 +702,13 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             The tray now exists for the whole clinic day, so the instruments are
             there to examine before the patient arrives, which is what a real
             surgery looks like anyway. */}
-        {(day === 'clinic' || day === 'done') && (
+        {/* ALWAYS. Not the clinic day, not once the patient is called — always.
+            Gating it on the day is the same mistake one layer down: the player
+            starts in the MORNING, so the instruments would still not exist until
+            the study step was finished, and "I cannot hold anything" would have
+            been just as true. Instruments are objects in a room. They are there
+            at eight in the morning too. */}
+        {(
           <InstrumentTray
             heldId={heldId}
             onPick={setHeldId}
