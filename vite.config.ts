@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import { writeFileSync, mkdirSync, createReadStream, existsSync } from 'node:fs'
 import { dirname, resolve, relative, isAbsolute, extname } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
@@ -103,7 +104,34 @@ function devFileDrop(): Plugin {
   }
 }
 
+/**
+ * Which commit this bundle was built from.
+ *
+ * Stamped into the build so "did you actually push it?" is answerable by
+ * looking at the screen instead of by diffing minified chunks off the live site.
+ * That question has now cost two sessions: a whole day's fixes were deployed,
+ * verified live, and reported as "nothing changed" — because the device was
+ * serving a cached build and there was no way to tell which one.
+ *
+ * GITHUB_SHA in CI; the local git SHA otherwise; 'unknown' if git is not there,
+ * because a missing stamp must never fail a build.
+ */
+function buildId(): string {
+  const sha = process.env.GITHUB_SHA
+  if (sha) return sha.slice(0, 7)
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
+  } catch {
+    return 'unknown'
+  }
+}
+
 export default defineConfig({
+  // Statically replaced, so the stamp costs one short string in the bundle.
+  define: {
+    __BUILD_ID__: JSON.stringify(buildId()),
+  },
+
   /**
    * GitHub Pages serves this repo from /Chairside/, not the domain root, so
    * every asset URL needs that prefix or the entire build 404s on the phone.

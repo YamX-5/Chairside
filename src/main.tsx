@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import { LocaleProvider } from './locales/LocaleContext'
 import './ui/theme.css'
+import { reloadOnNewServiceWorker } from './swReload'
+
+/** Injected by vite's `define` — see buildId() in vite.config.ts. */
+declare const __BUILD_ID__: string
 
 // Phase 0 look test, opened with #preview. Kept out of the game entirely so it
 // can never affect normal play, and lazy so three.js isn't in the main bundle.
@@ -117,10 +121,38 @@ function Root() {
   )
 }
 
+/**
+ * Which build is on screen, in the corner, in production too.
+ *
+ * Deliberately visible in the shipped app rather than behind import.meta.env.DEV.
+ * The whole reason it exists is to answer that question ON A PHONE, where there
+ * is no console and no devtools, and where the stale-cache problem actually
+ * bites. It is 9px, half-transparent and pointer-events:none, so it cannot be
+ * clicked through or mistaken for UI — and it is one line to delete at release.
+ */
+function BuildStamp() {
+  return (
+    <div
+      style={{
+        position: 'fixed', insetBlockEnd: 4, insetInlineStart: 6, zIndex: 9998,
+        font: '9px/1 ui-monospace, monospace', color: '#cdbfa9', opacity: 0.35,
+        pointerEvents: 'none', userSelect: 'none',
+      }}
+    >
+      {__BUILD_ID__}
+    </div>
+  )
+}
+
+// Before render: a page that is about to be replaced by a newer build should
+// find that out as early as possible.
+reloadOnNewServiceWorker()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LocaleProvider>
       <Root />
+      <BuildStamp />
     </LocaleProvider>
   </StrictMode>,
 )
