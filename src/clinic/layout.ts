@@ -924,6 +924,16 @@ export const PROPS: Prop[] = [
   // A glass-fronted cabinet with real internal shelves — which is where the
   // cabinet instruments are meant to be seen.
   { id: 'closet', pos: CABINET_POS, yaw: -Math.PI / 2, fills: true },
+  // The safety kit, on the cabinet's LOWEST shelf (y 0.490) so it does not share
+  // the middle one with the instruments. Offset 0.34 m along the shelf run,
+  // which for a prop yawed a quarter turn is world +Z, and well inside the
+  // 0.603 m half-span measured off closet.glb.
+  //
+  // It is scenery, not an instrument — you do not treat anyone with it — so it
+  // is a prop rather than a Pickable. It is also the first thing that pays off
+  // the cabinet's glass actually being transparent again: you can see it in
+  // there with the doors shut.
+  { id: 'first_aid_kit', pos: [CABINET_SHELF.x, 0.49, CABINET_SHELF.z + 0.34], yaw: -Math.PI / 2 },
 
   // --- near wall: the bookcase --------------------------------------------------
   // Floor-standing, 1.11 x 0.27 x 1.80 m, turned to face back into the room —

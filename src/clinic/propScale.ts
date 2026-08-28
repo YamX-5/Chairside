@@ -177,6 +177,20 @@ export const PROP_SCALES: PropScale[] = [
     longest: 1.4,
     because: 'it covers window1, so it is the same size by definition',
   },
+  {
+    id: 'axe',
+    longest: 0.72,
+    because:
+      'a fire axe swung two-handed — haft long enough for both fists and a ' +
+      'forearm, which is what separates it from the hatchet the placeholder was',
+  },
+  {
+    id: 'first_aid_kit',
+    longest: 0.3,
+    because:
+      'a hard case carried in one hand by its handle, and wide enough to open ' +
+      'flat on a worktop beside a patient',
+  },
 ]
 
 export const PROP_SCALE_BY_ID = new Map(PROP_SCALES.map((p) => [p.id, p]))
