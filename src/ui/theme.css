@@ -830,6 +830,17 @@ html[dir='rtl'] .text-input {
   box-shadow: var(--shadow);
 }
 
+/* The chart button, stacked above the interact button.
+   Quieter than the interact pill on purpose — the chart is always available,
+   so it must not compete with the prompt that only appears when it matters. */
+.touch-chart {
+  inset-block-end: max(112px, calc(env(safe-area-inset-bottom) + 86px));
+  background: rgba(12, 20, 34, 0.86);
+  color: var(--cyan);
+  border: 1px solid rgba(94, 214, 255, 0.5);
+  font-weight: 700;
+}
+
 /* The study / case panels, laid over the room */
 
 .clinic-overlay {

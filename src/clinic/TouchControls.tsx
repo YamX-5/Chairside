@@ -14,6 +14,25 @@ interface Props {
   /** Shown as a tappable button when the player is next to something. */
   promptLabel: string | null
   onInteract: () => void
+  /**
+   * Open and close the chart. WITHOUT THIS THE GAME IS UNWINNABLE ON A PHONE.
+   *
+   * The chart was bound to the H key and nothing else. isTouchDevice() hides
+   * every keyboard hint in the HUD, and this component's one button only ever
+   * carried the proximity prompt — which never says "open the chart", because
+   * the chart is not a place in the room, it is in your hands. So on a phone
+   * `reading` could never become true, CasePapers never mounted, commitPlan was
+   * never called, `planned` stayed false forever, and every instrument in the
+   * game stayed locked with no way to unlock it.
+   *
+   * Null when the chart cannot be opened yet (the morning, or mid-treatment), so
+   * the button is absent rather than present and inert.
+   */
+  onChart: (() => void) | null
+  /** So the button can say close rather than guess. */
+  chartOpen: boolean
+  /** Bilingual label for the chart button, chosen by the caller. */
+  chartLabel: string
 }
 
 /**
@@ -26,7 +45,13 @@ interface Props {
  */
 const TAP_SLOP = 9
 
-export function TouchControls({ promptLabel, onInteract }: Props) {
+export function TouchControls({
+  promptLabel,
+  onInteract,
+  onChart,
+  chartOpen,
+  chartLabel,
+}: Props) {
   const stickBase = useRef<HTMLDivElement>(null)
   const stickKnob = useRef<HTMLDivElement>(null)
   const movePointer = useRef<number | null>(null)
@@ -178,6 +203,18 @@ export function TouchControls({ promptLabel, onInteract }: Props) {
       {promptLabel && (
         <button className="touch-interact" onClick={onInteract}>
           {promptLabel}
+        </button>
+      )}
+      {/* Sits ABOVE the interact button rather than beside it: the interact
+          label can run to 42vw, and two variable-width pills on one row is how
+          you get a chart button that jumps under the thumb. */}
+      {onChart && (
+        <button
+          className="touch-interact touch-chart"
+          onClick={onChart}
+          aria-pressed={chartOpen}
+        >
+          {chartLabel}
         </button>
       )}
     </>

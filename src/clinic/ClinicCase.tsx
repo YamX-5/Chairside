@@ -109,6 +109,16 @@ export interface ClinicCaseProps {
   radiograph?: Film
 }
 
+/**
+ * The touch chart button's two labels.
+ *
+ * Inline bilingual pairs rather than locale-file keys, matching prompts.ts —
+ * every other string the room says to the player lives beside the thing that
+ * says it. Both locales in the same change, always.
+ */
+const CHART_OPEN = { en: 'Open the chart', ar: 'افتح الملف' }
+const CHART_CLOSE = { en: 'Close the chart', ar: 'أغلق الملف' }
+
 export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {}) {
   const [day, setDay] = useState<DayPhase>('morning')
   /**
@@ -825,6 +835,17 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
         <TouchControls
           promptLabel={activePrompt ? c(activePrompt) : null}
           onInteract={() => interact()}
+          // THE PHONE'S ONLY ROUTE TO THE CHART, and therefore to a committed
+          // plan, and therefore to picking up any instrument at all. Null in
+          // exactly the states toggleChart refuses, so the button is absent
+          // rather than present and inert.
+          onChart={
+            phase === 'deciding' && day !== 'morning' && day !== 'studying'
+              ? toggleChart
+              : null
+          }
+          chartOpen={reading}
+          chartLabel={c(reading ? CHART_CLOSE : CHART_OPEN)}
         />
       )}
 

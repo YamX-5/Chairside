@@ -226,6 +226,13 @@ export default function ClinicExperience({
             <TouchControls
               promptLabel={promptLabel}
               onInteract={() => activate(nearestRef.current)}
+              // This harness has no chart — it is the free-roam room, not the
+              // case. Null rather than a no-op so the button is absent instead
+              // of present and dead, which is the exact failure the in-world
+              // monitor's CALL THE PATIENT button was.
+              onChart={null}
+              chartOpen={false}
+              chartLabel=""
             />
           )}
 
