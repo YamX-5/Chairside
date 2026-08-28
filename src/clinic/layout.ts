@@ -180,10 +180,34 @@ export const MONITOR_YAW = DESK_YAW
  * actually see, which a 0.195 m laptop lid rendered in world-space text was not.
  */
 export const SCREEN_ANCHOR = {
-  x: MONITOR_POS[0] + 0.082, // the picture is on the front face, not the centre
-  y: DESK_TOP_Y + 0.3,
+  // MEASURED OFF THE PICTURE QUAD, not the bounding box.
+  //
+  // This was +0.082 — half the model's 0.159 m bounding DEPTH, on the assumption
+  // that the panel's front face is the box's front face. It is not: that depth
+  // is set by the STAND'S SLOPING FOOT, while the picture quad's own plane
+  // passes through local z = -0.0001. So the drawn screen hung 87 mm in front of
+  // the glass and poked out of the shell from the side.
+  //
+  // The quad's four corners are (+/-0.2899, 0.0850, +0.0248) and
+  // (+/-0.2899, 0.4388, -0.0250): centre local (0, 0.2619, -0.0001), leaning
+  // back atan(0.0498/0.3538) = 8.000 degrees. +2 mm along the panel normal keeps
+  // the plane off the glass without z-fighting.
+  //
+  // MONITOR_TILT must move with these — at the old 0.06 rad the plane is not
+  // parallel to the glass, so correcting x alone sinks the bottom edge into the
+  // panel while the top still protrudes.
+  x: MONITOR_POS[0] + 0.002,
+  y: DESK_TOP_Y + 0.262,
   z: MONITOR_POS[2],
 }
+
+/**
+ * How far the panel leans back, in radians — 8.000 degrees, measured off the
+ * picture quad. Owned here so the anchor and the tilt cannot disagree; DeskScreen
+ * used 0.06, which left the drawn plane wedged against the glass rather than
+ * parallel to it.
+ */
+export const MONITOR_TILT = 0.1396
 
 /** The in-world screen's size, matching the monitor's panel. */
 export const SCREEN_W = 0.52

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { type ThreeEvent } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import { Euler, DoubleSide, Group } from 'three'
-import { SCREEN_ANCHOR, SCREEN_H, SCREEN_W } from './layout'
+import { MONITOR_TILT, SCREEN_ANCHOR, SCREEN_H, SCREEN_W } from './layout'
 import type { CaseCore } from '../ingest/channels'
 
 /**
@@ -22,7 +22,7 @@ import type { CaseCore } from '../ingest/channels'
 // screen would sink into the wood again.
 // A monitor stands upright: no lid, so no backward lean. The small -0.06 is
 // the few degrees a real panel is tipped back on its stand.
-const SCREEN_ROT = new Euler(-0.06, Math.PI / 2, 0, 'YXZ')
+const SCREEN_ROT = new Euler(-MONITOR_TILT, Math.PI / 2, 0, 'YXZ')
 
 /**
  * The laptop screen. It never leaves the laptop — the camera leans in to read
