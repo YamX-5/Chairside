@@ -621,7 +621,7 @@ export const OPENABLES: Openable[] = [
   // why "the drawers are not functional at all".
   { prop: 'sterilization_centre', nodes: ['Drawer_00'], kind: 'drawer', travel: 0.32, section: 'left' },
   { prop: 'sterilization_centre', nodes: ['Material_005-material'], kind: 'drawer', travel: 0.26, section: 'mid' },
-  { prop: 'sterilization_centre', nodes: ['Material_005-material.001'], kind: 'drawer', travel: 0.26, section: 'mid' },
+  { prop: 'sterilization_centre', nodes: ['Material_005-material001'], kind: 'drawer', travel: 0.26, section: 'mid' },
 
   // Upper glazed doors, left to right along the run.
   { prop: 'sterilization_centre', nodes: ['Door_00'], kind: 'door', hinge: 'left', travel: DOOR_SWING, section: 'left' },
@@ -639,7 +639,7 @@ export const OPENABLES: Openable[] = [
   // unlike the station it needed no Blender pass.
   {
     prop: 'closet',
-    nodes: ['closet__LeftDoor_Wood049_2K_0', 'closet__Glass.001_Glass_0'],
+    nodes: ['closet__LeftDoor_Wood049_2K_0', 'closet__Glass001_Glass_0'],
     kind: 'door',
     hinge: 'left',
     travel: DOOR_SWING,

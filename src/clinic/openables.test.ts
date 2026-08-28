@@ -6,10 +6,28 @@ import { readGltfJson } from './glbMeasure'
 
 const PROPS_DIR = join(process.cwd(), 'public', 'models', 'props')
 
-/** Node names present in a .glb. */
+/**
+ * Node names present in a .glb, AS THREE WILL NAME THEM.
+ *
+ * This is the whole point of the sanitising step. The test used to compare
+ * OPENABLES against the raw glTF JSON, so a name like
+ * "closet__Glass.001_Glass_0" matched the file perfectly and the suite stayed
+ * green — while at runtime three's GLTFLoader strips [].:/ from every node name,
+ * getObjectByName returned undefined, and that door's glass pane was never
+ * hinged. It hung in the cabinet opening as a white slab while the wooden frame
+ * swung away from it.
+ *
+ * The same dot silently killed a station drawer. Comparing against the sanitised
+ * form is the only version of this test that tests anything.
+ */
 function nodeNames(path: string): Set<string> {
   const js = readGltfJson(path) as { nodes?: { name?: string }[] }
-  return new Set((js.nodes ?? []).map((n) => n.name).filter(Boolean) as string[])
+  return new Set(
+    (js.nodes ?? [])
+      .map((n) => n.name)
+      .filter(Boolean)
+      .map((n) => (n as string).replace(/\s/g, '_').replace(/[[\]./:]/g, '')),
+  )
 }
 
 // ---------------------------------------------------------------------------

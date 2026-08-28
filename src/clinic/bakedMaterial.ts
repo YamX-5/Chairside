@@ -1,4 +1,4 @@
-import { MeshBasicMaterial, MeshLambertMaterial, type Object3D } from 'three'
+import { FrontSide, MeshBasicMaterial, MeshLambertMaterial, type Object3D, type Side } from 'three'
 
 /**
  * Swap every mesh under `root` to an unlit material that simply shows the
@@ -55,7 +55,15 @@ export function applyBakedLighting(root: Object3D, opts: BakedOptions = {}): voi
     if (!mesh.isMesh) return
 
     const mat = mesh.material as
-      | { color?: { getHex(): number }; emissive?: { getHex(): number }; map?: unknown }
+      | {
+          color?: { getHex(): number }
+          emissive?: { getHex(): number }
+          map?: unknown
+          // Read so the swap can preserve them — see the fallback below.
+          transparent?: boolean
+          opacity?: number
+          side?: Side
+        }
       | undefined
 
     // A TEXTURED asset keeps its own material, untouched.
@@ -81,9 +89,21 @@ export function applyBakedLighting(root: Object3D, opts: BakedOptions = {}): voi
     // old lit path rather than rendering it pure white, so regenerating a model
     // and forgetting to bake it degrades to "looks like it used to" instead of
     // "looks broken".
+    // TRANSPARENCY MUST SURVIVE THE SWAP. Rebuilding the material kept only
+    // colour and emissive, so the glass cabinet's panes — authored alphaMode
+    // BLEND with an alpha of 0.03 — came out as opaque pure white panels. A
+    // glass cabinet you cannot see into is not a glass cabinet, and with one
+    // door's pane also failing to hinge it read as a white slab standing in the
+    // opening.
     mesh.material = new MeshLambertMaterial({
       color: mat?.color?.getHex?.() ?? 0xffffff,
       emissive: mat?.emissive?.getHex?.() ?? 0x000000,
+      transparent: mat?.transparent ?? false,
+      opacity: mat?.opacity ?? 1,
+      side: mat?.side ?? FrontSide,
+      // Transparent surfaces must not write depth, or they occlude whatever is
+      // behind them — which for a cabinet pane is everything on the shelves.
+      depthWrite: !mat?.transparent,
     })
   })
 }
