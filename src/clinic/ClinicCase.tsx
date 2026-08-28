@@ -257,6 +257,24 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
       return
     }
 
+    // The glass cabinet. It had no zone at all, so its doors could only be
+    // CLICKED — and the phone's interact button fires one hard-coded openable,
+    // so on a phone there was no way in whatsoever. Both leaves move together:
+    // reaching past one door to a shelf behind the other is fiddly, and a
+    // cabinet you open by walking up to it and pressing one key is not.
+    if (nearestRef.current === 'cabinet') {
+      const anyOpen = CABINET_DOOR_IDS.some((id) => openIds.has(id))
+      setOpenIds((prev) => {
+        const next = new Set(prev)
+        for (const id of CABINET_DOOR_IDS) {
+          if (anyOpen) next.delete(id)
+          else next.add(id)
+        }
+        return next
+      })
+      return
+    }
+
     if ((day === 'clinic' || day === 'done') && phase === 'deciding') {
       if (planned && heldId && nearestRef.current === 'solve') {
         // The syringe ANAESTHETISES; it does not treat. Checked before the
@@ -451,6 +469,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     holdingLabel: heldInstrument?.label,
     anaesthetised,
     drawerOpen: openIds.has(DRAWER_PROMPT_OPENS),
+    closetOpen: CABINET_DOOR_IDS.some((id) => openIds.has(id)),
     studied: day !== 'morning',
     canTreat: planned && atChair,
     seat: nearSeat,

@@ -140,7 +140,7 @@ for (const it of INTERACTABLES) {
 // Every interactable must have a branch that does something. A prompt with no
 // handler is worse than no prompt: it tells the player an action exists.
 {
-  const HANDLED = new Set(['study', 'solve', 'drawer', 'gloves', 'xray', 'door'])
+  const HANDLED = new Set(['study', 'solve', 'drawer', 'gloves', 'xray', 'door', 'cabinet'])
   for (const it of INTERACTABLES) {
     assert.ok(
       HANDLED.has(it.id),

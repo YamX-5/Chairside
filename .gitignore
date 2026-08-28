@@ -43,3 +43,6 @@ blender/thumbs/
 # Scratch markers written by the Blender socket bridge.
 blender/.before
 blender/.audition
+
+# Scratch written by diagnostic agents while investigating.
+scripts/tmp/

@@ -419,6 +419,7 @@ export type InteractableId =
   | 'door'
   | 'gloves'
   | 'xray'
+  | 'cabinet'
 
 export interface Interactable {
   id: InteractableId
@@ -473,6 +474,11 @@ export const INTERACTABLES: Interactable[] = [
   // run between the two shelf assemblies (-0.325 to 0.128) is clear top to
   // bottom, which is the only place on the counter a box this size can hang.
   { id: 'gloves', x: -0.1, z: STATION.maxZ + 0.45, radius: 0.5 },
+  // The glass cabinet. It had NO zone at all, so clicking its doors was the only
+  // way in and the phone's interact button — which can only fire one hard-coded
+  // openable — could never reach it. Standing spot, not the cabinet's own
+  // position: the collider starts at x 2.382 and PLAYER_RADIUS is 0.32.
+  { id: 'cabinet', x: 2.0, z: CABINET_POS[2], radius: 0.7 },
 ]
 
 /**

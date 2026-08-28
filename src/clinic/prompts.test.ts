@@ -8,6 +8,7 @@ const base: PromptState = {
   holding: null,
   anaesthetised: false,
   drawerOpen: false,
+  closetOpen: false,
   studied: false,
   canTreat: false,
   seat: null,

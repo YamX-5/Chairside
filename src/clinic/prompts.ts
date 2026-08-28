@@ -37,6 +37,8 @@ export interface PromptState {
   anaesthetised: boolean
   /** True once this particular drawer is open. */
   drawerOpen: boolean
+  /** The glass cabinet's doors are open. */
+  closetOpen: boolean
   /** Morning gate: nothing starts until the desk has been used. */
   studied: boolean
   /** She is in the chair and the plan is committed. */
@@ -63,6 +65,8 @@ export const PROMPT_TEXT = {
   glovesOn: { en: 'Put gloves on', ar: 'ارتدِ القفازات' },
   glovesOff: { en: 'Take the gloves off', ar: 'اخلع القفازات' },
   drawerOpen: { en: 'Open the drawer', ar: 'افتح الدرج' },
+  cabinetOpen: { en: 'Open the cabinet', ar: 'افتح الخزانة' },
+  cabinetClose: { en: 'Close the cabinet', ar: 'أغلق الخزانة' },
   drawerClose: { en: 'Close the drawer', ar: 'أغلق الدرج' },
   board: { en: 'Check your reputation', ar: 'تفقّد سمعتك' },
   takeXray: { en: 'Take the portable X-ray', ar: 'خذ جهاز الأشعة المحمول' },
@@ -121,6 +125,9 @@ export function promptFor(s: PromptState): Bi | null {
 
     case 'board':
       return PROMPT_TEXT.board
+
+    case 'cabinet':
+      return s.closetOpen ? PROMPT_TEXT.cabinetClose : PROMPT_TEXT.cabinetOpen
 
     case 'xray':
       return s.holding === 'xray' ? PROMPT_TEXT.stowXray : PROMPT_TEXT.takeXray
