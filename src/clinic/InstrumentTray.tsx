@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Group, Object3D, Quaternion, Vector3 } from 'three'
 import { useOptionalGLTF } from './useOptionalGLTF'
@@ -62,6 +69,37 @@ const camQuat = new Quaternion()
 const held = new Vector3()
 
 /**
+ * Loads ONE instrument's own .glb and hands the node to its children.
+ *
+ * A render-prop component purely so the hook is legal. useOptionalGLTF cannot be
+ * called in a loop, which is the entire reason external models were stuck behind
+ * a hard-coded SHELF_INSTRUMENTS[0] and a single top-level hook — the X-ray was
+ * the only instrument that could have its own file. A child component gets its
+ * own hook slot, so any number of instruments can now.
+ *
+ * NOT retinted, deliberately. retint rebuilds untextured materials to give
+ * procedural geometry a consistent palette; running it over a downloaded asset
+ * throws away the texture maps that are the reason it was chosen.
+ */
+function ExternalModel({
+  inst,
+  children,
+}: {
+  inst: (typeof INSTRUMENTS)[number]
+  children: (node: Object3D | undefined) => ReactNode
+}) {
+  const gltf = useOptionalGLTF(inst.model ? `${BASE}models/${inst.model}` : null)
+  const node = useMemo(() => {
+    if (!gltf) return undefined
+    const clone = gltf.scene.clone(true)
+    clone.position.set(0, 0, 0)
+    clone.rotation.set(0, 0, 0)
+    return clone as Object3D
+  }, [gltf])
+  return <>{children(node)}</>
+}
+
+/**
  * One pickable instrument, wherever it is stored.
  *
  * MODULE SCOPE, deliberately. This used to be declared inside InstrumentTray's
@@ -99,6 +137,11 @@ function Pickable({
   return (
     <group
       position={[x, lifted ? 0.03 : 0, 0]}
+      // Per-instrument only, and normally absent — see Instrument.rot. The
+      // shared convention is "long axis along local +Z"; this exists so an
+      // external model authored for a different purpose can be brought onto it
+      // without re-exporting the file.
+      rotation={inst.rot ?? [0, 0, 0]}
       // NO ROTATION. Every instrument in instruments.glb runs along its LOCAL
       // +Z from the grip (build_instruments.py), which is already flat-on-the-
       // tray once the group is placed. This used to be [-PI/2, 0, 0], which
@@ -343,19 +386,40 @@ export function InstrumentTray({
             what makes taking the axe a decision rather than an accident. */}
         {closetOpen && (
           <group>
-            {CLOSET_INSTRUMENTS.map((inst, i) => (
-              <Pickable
-                key={inst.id}
-                inst={inst}
-                x={closetX[i]}
-                node={heldId === inst.id ? undefined : nodes.get(inst.id)}
-                enabled={enabled}
-                hovered={hover === inst.id}
-                onHover={setHover}
-                onPick={onPick}
-            onBlocked={onBlocked}
-              />
-            ))}
+            {CLOSET_INSTRUMENTS.map((inst, i) =>
+              // ANY instrument may now carry its own .glb, not just the X-ray.
+              // The axe ships real geometry (props/axe.glb) and the first-aid kit
+              // is a real model too; both used to be stuck as procedural
+              // placeholders because only one external model could be loaded.
+              inst.model ? (
+                <ExternalModel key={inst.id} inst={inst}>
+                  {(node) => (
+                    <Pickable
+                      inst={inst}
+                      x={closetX[i]}
+                      node={heldId === inst.id ? undefined : node}
+                      enabled={enabled}
+                      hovered={hover === inst.id}
+                      onHover={setHover}
+                      onPick={onPick}
+                      onBlocked={onBlocked}
+                    />
+                  )}
+                </ExternalModel>
+              ) : (
+                <Pickable
+                  key={inst.id}
+                  inst={inst}
+                  x={closetX[i]}
+                  node={heldId === inst.id ? undefined : nodes.get(inst.id)}
+                  enabled={enabled}
+                  hovered={hover === inst.id}
+                  onHover={setHover}
+                  onPick={onPick}
+                  onBlocked={onBlocked}
+                />
+              ),
+            )}
           </group>
         )}
       </group>

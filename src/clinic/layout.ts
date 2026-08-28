@@ -962,6 +962,40 @@ export function unitHolders(count: number): { x: number; y: number; z: number; s
  * the sterilisation station's drawer bank. Deriving it from CHAIR_POS is what
  * dragged it there when the chair moved.
  */
+/**
+ * The USABLE INSIDE of the glass cabinet, in world coordinates.
+ *
+ * MEASURED off closet.glb, part by part, through the loader — not estimated from
+ * the prop's bounding box, which includes the doors and the 40 mm carcass sides
+ * and so is 200 mm wider and 70 mm deeper than anything actually fits in.
+ *
+ * In the prop's LOCAL frame the carcass gives: sides at x -0.642..-0.602 and
+ * 0.602..0.642, back at z -0.269..-0.257, door glass at z 0.149..0.222. So the
+ * interior is local x -0.602..0.602 and local z -0.257..0.149 — 1.204 m wide and
+ * only 0.406 m deep. Shelf top surfaces at y 0.490, 0.965 and 1.441.
+ *
+ * THE PROP IS YAWED -PI/2, which is the trap. Local X runs along WORLD Z and
+ * local Z runs along world -X:
+ *
+ *     world.x = CABINET_POS[0] - local.z
+ *     world.z = CABINET_POS[2] + local.x
+ *
+ * Getting that backwards is how the axe ended up laid across the cabinet's
+ * 0.406 m depth instead of along its 1.204 m width — a 0.72 m axe in a 0.41 m
+ * space, overhanging the shelf and poking through the closed doors.
+ *
+ * cabinet.test.ts checks every shelf-dwelling object against this box, so
+ * "inside the cabinet" stops being something anyone has to eyeball.
+ */
+export const CABINET_INTERIOR = {
+  minX: CABINET_POS[0] - 0.149,
+  maxX: CABINET_POS[0] + 0.257,
+  minZ: CABINET_POS[2] - 0.602,
+  maxZ: CABINET_POS[2] + 0.602,
+  /** Top surfaces you can stand something on, world Y, low to high. */
+  shelfY: [0.49, 0.965, 1.441] as const,
+}
+
 export const CABINET_SHELF = {
   x: CABINET_POS[0],
   y: 0.965,
@@ -1051,16 +1085,6 @@ export const PROPS: Prop[] = [
   // A glass-fronted cabinet with real internal shelves — which is where the
   // cabinet instruments are meant to be seen.
   { id: 'closet', pos: CABINET_POS, yaw: -Math.PI / 2, fills: true },
-  // The safety kit, on the cabinet's LOWEST shelf (y 0.490) so it does not share
-  // the middle one with the instruments. Offset 0.34 m along the shelf run,
-  // which for a prop yawed a quarter turn is world +Z, and well inside the
-  // 0.603 m half-span measured off closet.glb.
-  //
-  // It is scenery, not an instrument — you do not treat anyone with it — so it
-  // is a prop rather than a Pickable. It is also the first thing that pays off
-  // the cabinet's glass actually being transparent again: you can see it in
-  // there with the doors shut.
-  { id: 'first_aid_kit', pos: [CABINET_SHELF.x, 0.49, CABINET_SHELF.z + 0.34], yaw: -Math.PI / 2 },
 
   // --- near wall: the bookcase --------------------------------------------------
   // Floor-standing, 1.11 x 0.27 x 1.80 m, turned to face back into the room —

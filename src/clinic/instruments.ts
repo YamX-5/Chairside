@@ -23,6 +23,7 @@ export type InstrumentId =
   | 'xray'
   | 'highSpeed'
   | 'triplex'
+  | 'firstAid'
 
 /** Where an instrument lives when the room is at rest. */
 export type Storage =
@@ -77,6 +78,24 @@ export interface Instrument {
    * read as real equipment.
    */
   model?: string
+  /**
+   * Extra rotation, radians, applied where the instrument is laid out.
+   *
+   * Everything built by build_instruments.py runs along its LOCAL +Z from the
+   * grip, and Pickable relies on that — it deliberately applies no rotation,
+   * because the version that did stood every tool on end like fence posts.
+   *
+   * An EXTERNAL model has no reason to share that convention. props/axe.glb was
+   * converted as a floor prop: grounded, with its 0.72 m length along +Y. Laid
+   * out unrotated it stands upright inside a cabinet whose shelves are 0.475 m
+   * apart, so it passes straight through the shelf above.
+   *
+   * Rotating +PI/2 about X maps +Y onto +Z, which puts it back on the shared
+   * convention. Stated per instrument rather than baked into the .glb because
+   * the same file is also usable as a standing floor prop, where grounded-and-
+   * upright is the correct authoring.
+   */
+  rot?: [number, number, number]
   label: string
   /** Shown when held, so picking one up teaches what it is for. */
   use: string
@@ -122,7 +141,17 @@ export const INSTRUMENTS: Instrument[] = [
   { id: 'perioProbe', node: 'PerioProbe', label: 'Periodontal probe', use: 'Measure pocket depths', storage: 'drawer' },
   { id: 'scaler', node: 'Scaler', label: 'Scaler', use: 'Remove calculus above and below the gum', storage: 'drawer' },
   { id: 'forceps', node: 'Forceps', label: 'Extraction forceps', use: 'Remove a tooth. Irreversible.', storage: 'drawer' },
-  { id: 'axe', node: 'Axe', label: 'Axe', use: 'No.', absurd: true, storage: 'closet' },
+  // REAL GEOMETRY at last. props/axe.glb (Quaternius, CC0) has shipped since the
+  // cabinet commit but nothing could load it: external models were pinned to a
+  // single hard-coded slot occupied by the X-ray. `node` stays as the fallback
+  // for a build where the file is missing.
+  { id: 'axe', node: 'Axe', model: 'props/axe.glb', rot: [Math.PI / 2, 0, 0], label: 'Axe', use: 'No.', absurd: true, storage: 'closet' },
+  // The safety kit, now something you can actually pick up rather than scenery
+  // you walk past. It is NOT absurd — a first-aid kit in a clinic is the one
+  // thing in that cabinet that belongs there — but nothing requires it either,
+  // so taking it is a choice with no clinical consequence.
+  { id: 'firstAid', node: 'FirstAid', model: 'props/first_aid_kit.glb', label: 'First-aid kit', use: 'Not for teeth. Reassuring to have.', storage: 'closet' },
+
 
   // On its cradle on the wall shelf. Diagnostic, not operative -- it is the one
   // instrument you use to LOOK rather than to do.
