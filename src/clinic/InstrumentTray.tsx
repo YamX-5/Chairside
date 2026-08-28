@@ -361,15 +361,26 @@ export function InstrumentTray({
     g.quaternion.copy(camQuat).multiply(GRIP_ROT)
   })
 
-  if (!nodes) return null
-
-
-  const trayX = trayLayout(TRAY_INSTRUMENTS.length)
-  // One target per holder, spaced along the measured bar. Memoised because the
-  // count only changes when instruments.ts does.
+  // EVERY HOOK MUST BE ABOVE THE EARLY RETURN BELOW.
+  //
+  // These two sat under `if (!nodes) return null`, which is a conditional hook
+  // and it took the whole tray down. `nodes` is null until instruments.glb
+  // finishes loading, so the first render ran fewer hooks than the second; the
+  // moment the file arrived React hit "rendered more hooks than during the
+  // previous render" and unmounted this entire subtree. On screen that is the
+  // tray, the drawer contents, the cabinet contents — axe and first-aid kit —
+  // the unit's handpieces and the X-ray all vanishing at once, which is exactly
+  // what was reported.
+  //
+  // It typechecked and all 33 suites passed, because neither tsc nor a node test
+  // can see a hooks-order violation. Only running it can.
   const unitSlots = useMemo(() => unitHolders(UNIT_INSTRUMENTS.length), [])
   /** The drawer's contents and its tray, which slide out with its front. */
   const drawerRide = useRef<Group>(null)
+
+  if (!nodes) return null
+
+  const trayX = trayLayout(TRAY_INSTRUMENTS.length)
   const closetX = trayLayout(CLOSET_INSTRUMENTS.length, 0.09)
   const drawerX = trayLayout(DRAWER_INSTRUMENTS.length, 0.11)
 

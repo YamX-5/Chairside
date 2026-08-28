@@ -119,7 +119,21 @@ const DOOR_LOCAL = new Vector3(
   // existence on open floor. From the aperture the wall occludes her first
   // stride, which is what makes it read as walking IN.
   DOORWAY_ENTRY_Z - SEAT[2],
-).applyAxisAngle(new Vector3(0, 1, 0), -FACING)
+).applyAxisAngle(new Vector3(0, 1, 0), -(FACING + CAST_FACING_OFFSET))
+
+/*
+ * THE ROTATION HERE MUST MATCH THE GROUP'S, ALL OF IT.
+ *
+ * This rotated by -FACING alone, which was right while the group was rotated by
+ * FACING. Adding CAST_FACING_OFFSET to the group — the measured PI that turns
+ * the Quaternius mesh to face the way the chair says — left this vector half a
+ * turn out of step, so the doorway was expressed as if it were on the opposite
+ * side of the room. She walked IN from the wrong direction: backwards, out of
+ * the sterilising bench.
+ *
+ * Two places deriving the same frame independently is the bug; they are now one
+ * expression apart, and if the offset changes again this follows it.
+ */
 
 /** Below this she is still crossing the room; above it she is sitting down. */
 const SIT_STARTS_AT = 0.8
