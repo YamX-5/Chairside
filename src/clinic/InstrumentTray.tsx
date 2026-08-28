@@ -73,6 +73,7 @@ function Pickable({
   hovered,
   onHover,
   onPick,
+  onBlocked,
 }: {
   inst: (typeof INSTRUMENTS)[number]
   x: number
@@ -81,6 +82,8 @@ function Pickable({
   hovered: boolean
   onHover: (id: InstrumentId | null) => void
   onPick: (id: InstrumentId) => void
+  /** Clicked while locked — the caller explains why. */
+  onBlocked: (id: InstrumentId) => void
 }) {
   if (!node) return null
   // Hover responds even when picking is locked. Gating the lift on `enabled`
@@ -107,11 +110,16 @@ function Pickable({
       }}
       onPointerOut={() => onHover(null)}
       onClick={(e: ThreeEvent<MouseEvent>) => {
-        // stopPropagation INSIDE the guard. Outside it, a click before the plan
-        // was committed got eaten here and never reached anything else — no
-        // pick, no feedback, no fallthrough. Silently doing nothing is worse
-        // than being visibly locked.
-        if (!enabled) return
+        // A LOCKED INSTRUMENT MUST SAY SO. Clicking one before the plan is
+        // committed used to do nothing at all — no pick, no message, no sound —
+        // which is indistinguishable from the game being broken. It is the
+        // single most-reported problem with this tray: "I can't hold any
+        // instruments."
+        if (!enabled) {
+          e.stopPropagation()
+          onBlocked(inst.id)
+          return
+        }
         e.stopPropagation()
         onPick(inst.id)
       }}
@@ -141,6 +149,8 @@ interface Props {
   /** Null when empty-handed. */
   heldId: InstrumentId | null
   onPick: (id: InstrumentId) => void
+  /** Told when a locked instrument is clicked, so the HUD can say why. */
+  onBlocked: (id: InstrumentId) => void
   /** Instruments can only be picked up once a plan has been committed. */
   enabled: boolean
   /**
@@ -164,6 +174,7 @@ interface Props {
 export function InstrumentTray({
   heldId,
   onPick,
+  onBlocked,
   enabled,
   closetOpen,
   drawerOpen,
@@ -273,6 +284,7 @@ export function InstrumentTray({
             hovered={hover === inst.id}
             onHover={setHover}
             onPick={onPick}
+            onBlocked={onBlocked}
           />
         ))}
       </group>
@@ -304,6 +316,7 @@ export function InstrumentTray({
                 hovered={hover === inst.id}
                 onHover={setHover}
                 onPick={onPick}
+            onBlocked={onBlocked}
               />
             ))}
           </group>
@@ -328,6 +341,7 @@ export function InstrumentTray({
                 hovered={hover === inst.id}
                 onHover={setHover}
                 onPick={onPick}
+            onBlocked={onBlocked}
               />
             ))}
           </group>

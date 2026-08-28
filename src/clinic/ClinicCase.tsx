@@ -126,6 +126,15 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
   const [called, setCalled] = useState(false)
   /** The plan is locked in; the tray is live. */
   const [planned, setPlanned] = useState(false)
+  /**
+   * Shown briefly when a locked instrument is clicked.
+   *
+   * The tray is deliberately dead until a plan is committed — you should decide
+   * what you are doing before you pick up a drill. But it said so nowhere, so
+   * the honest player experience was "I can't hold any instruments" with no clue
+   * why. A rule you cannot see is a bug, whatever the code intends.
+   */
+  const [blockedNote, setBlockedNote] = useState(false)
   const [heldId, setHeldId] = useState<InstrumentId | null>(null)
   const [filmOpen, setFilmOpen] = useState(false)
   /**
@@ -267,6 +276,13 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     const seat = nearestSeat(camPosRef.current.x, camPosRef.current.z)
     if (seat) setSeatedId(seat.id)
   }, [day, phase, planned, heldId, seatedId])
+
+  // The nudge clears itself. A message that stays put reads as an error state.
+  useEffect(() => {
+    if (!blockedNote) return
+    const t = setTimeout(() => setBlockedNote(false), 2600)
+    return () => clearTimeout(t)
+  }, [blockedNote])
 
   /** H — the chart. Works anywhere in the room, because you carry it. */
   const toggleChart = useCallback(() => {
@@ -541,6 +557,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
           <InstrumentTray
             heldId={heldId}
             onPick={setHeldId}
+            onBlocked={() => setBlockedNote(true)}
             enabled={planned && phase === 'deciding'}
             closetOpen={CABINET_DOOR_IDS.some((id) => openIds.has(id))}
             drawerOpen={openIds.has(INSTRUMENT_DRAWER)}
@@ -605,6 +622,16 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             <div style={S.bigPrompt}>
               <span style={S.bigKey}>E</span>
               <span>{c(activePrompt)}</span>
+            </div>
+          )}
+          {/* Why that instrument would not come up. Shown on both desktop and
+              touch — the locked tray is confusing on either. */}
+          {blockedNote && (
+            <div style={S.blocked}>
+              {c({
+                en: 'Commit a plan on the chart first — H',
+                ar: 'التزم بخطة على البطاقة أولًا — H',
+              })}
             </div>
           )}
           {!isTouch && <div style={S.hint}>
