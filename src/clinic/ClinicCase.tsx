@@ -285,27 +285,17 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     // cabinet or drawer zone. Putting it after meant E at the open cabinet
     // closed the doors instead of taking the thing you were aiming at.
     const aimed = hoverInstrumentRef.current
-    if (aimed && called && arrival >= 1) {
-      if (!planned) {
-        // Say why, rather than doing nothing. The tray is deliberately dead
-        // until a plan is committed; a rule you cannot see is a bug.
-        setBlockedNote(true)
-        return
-      }
+    if (aimed) {
       setHeldId((h) => (h === aimed ? null : aimed))
       return
     }
 
-    if (nearestRef.current === 'xray' && called && arrival >= 1) {
+    if (nearestRef.current === 'xray') {
       // Gated on `planned` like every other instrument — the comment above
       // always claimed it was, and it was not. Picking the X-ray up before a
       // plan existed meant E at the chair fell past the `planned && heldId`
       // guard all the way to nearestSeat, which silently sat the player on the
       // stool instead of shooting a film. Putting it BACK stays allowed.
-      if (!planned && heldId !== 'xray') {
-        setBlockedNote(true)
-        return
-      }
       setHeldId((h) => (h === 'xray' ? null : 'xray'))
       return
     }
@@ -698,15 +688,26 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
           />
         </Suspense>
 
-        {/* The tray goes live once a plan is committed. Offering instruments
-            before there is a plan invites poking at a patient for no reason,
-            which is the opposite of the lesson. */}
-        {called && arrival >= 1 && (
+        {/* HOLDING IS NOT GATED. USING IS.
+            This asked for `called && arrival >= 1` to render at all, and then
+            `planned` on top of that to be pickable. The intent was sound —
+            decide before you drill — but the implementation gated the wrong
+            verb, and the result was a dentistry game in which the one thing you
+            could never do was pick up an instrument. Every complaint in the last
+            several rounds traces back here.
+            The lesson survives where it belongs: the `solve` branch in interact()
+            still refuses to TOUCH THE PATIENT without a committed plan, and
+            protection.ts still records every breach. You may hold a drill before
+            you have decided anything; you may not put it in someone's mouth.
+            The tray now exists for the whole clinic day, so the instruments are
+            there to examine before the patient arrives, which is what a real
+            surgery looks like anyway. */}
+        {(day === 'clinic' || day === 'done') && (
           <InstrumentTray
             heldId={heldId}
             onPick={setHeldId}
             onBlocked={() => setBlockedNote(true)}
-            enabled={planned && phase === 'deciding'}
+            enabled={phase === 'deciding'}
             closetOpen={CABINET_DOOR_IDS.some((id) => openIds.has(id))}
             drawerOpen={openIds.has(INSTRUMENT_DRAWER)}
             hoverRef={hoverInstrumentRef}
