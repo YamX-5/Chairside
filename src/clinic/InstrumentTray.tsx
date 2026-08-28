@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Group, Object3D, Quaternion, Vector3 } from 'three'
 import { useOptionalGLTF } from './useOptionalGLTF'
@@ -170,6 +170,27 @@ interface Props {
    * that works the drawer, and this component only reads the result.
    */
   drawerOpen: boolean
+  /**
+   * The instrument the crosshair is on, published every time it changes.
+   *
+   * A REF, not a callback into state: hover changes as fast as the player turns
+   * their head, and re-rendering the whole clinic at that rate is the one thing
+   * you must never do in r3f. ClinicCase reads it inside its E handler only.
+   *
+   * This exists because pick-up was CLICK-ONLY. There is no INTERACTABLE zone at
+   * the tray, the drawer shelf, the cabinet shelf or the unit, so
+   * nearestInteractable could never name an instrument and interact() had
+   * nothing to branch on — while the HUD said, in as many words, "E take an
+   * instrument off the tray". The player did exactly what the game taught them
+   * and nothing happened, with no message.
+   *
+   * Hover is the right signal to hang E on: it already works under pointer lock,
+   * because r3f pre-filters pointer-move to objects carrying onPointer*
+   * handlers and drei's PointerLockControls casts from screen centre — which IS
+   * the crosshair. So "press E to take what you are looking at" needs no new
+   * geometry, no new zone, and no second source of truth about what is in reach.
+   */
+  hoverRef?: RefObject<InstrumentId | null>
 }
 
 export function InstrumentTray({
@@ -179,6 +200,7 @@ export function InstrumentTray({
   enabled,
   closetOpen,
   drawerOpen,
+  hoverRef,
 }: Props) {
   const gltf = useOptionalGLTF(`${BASE}models/instruments.glb`)
 
@@ -194,6 +216,11 @@ export function InstrumentTray({
   )
 
   const [hover, setHover] = useState<InstrumentId | null>(null)
+  // Mirror hover out to the parent so E can act on it. Written during render
+  // rather than in an effect: interact() may fire on the very next event, and an
+  // effect would leave it a frame stale — which on a fast flick is the
+  // difference between taking the mirror and taking nothing.
+  if (hoverRef) hoverRef.current = hover
   const heldRef = useRef<Group>(null)
   const { camera } = useThree()
 

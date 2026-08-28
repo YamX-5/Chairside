@@ -188,6 +188,13 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
   const [nearSeat, setNearSeat] = useState<string | null>(null)
   /** Live camera position, so `interact` can find the nearest seat. */
   const camPosRef = useRef({ x: SPAWN.x, z: SPAWN.z })
+  /**
+   * Which instrument the crosshair is on, published by InstrumentTray.
+   *
+   * A ref because it changes as fast as the player turns their head. It is what
+   * makes E work on instruments at all — see the pick-up branch in interact().
+   */
+  const hoverInstrumentRef = useRef<InstrumentId | null>(null)
   const [reading, setReading] = useState(false)
   const [page, setPage] = useState<Page>('history')
   const [tabled, setTabled] = useState<Set<string>>(new Set())
@@ -261,6 +268,32 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
     // The portable X-ray, off the top of the bookcase. Gated on the same
     // condition as the tray that renders it — hold an instrument the scene is
     // not drawing and you are holding nothing at all.
+    // TAKE WHAT YOU ARE LOOKING AT.
+    //
+    // Before this, pick-up was CLICK-ONLY for everything except the X-ray: no
+    // INTERACTABLE zone exists at the tray, the drawer shelf, the cabinet shelf
+    // or the unit, so nearestInteractable could never name an instrument and
+    // this function had nothing to branch on — while the HUD told the player, in
+    // as many words, to press E to take one. They pressed E and nothing
+    // happened, with no message. That is the whole "I cannot hold anything"
+    // report.
+    //
+    // Checked BEFORE the zone branches on purpose: if you are looking straight
+    // at an instrument, that is what you mean, even while standing inside the
+    // cabinet or drawer zone. Putting it after meant E at the open cabinet
+    // closed the doors instead of taking the thing you were aiming at.
+    const aimed = hoverInstrumentRef.current
+    if (aimed && called && arrival >= 1) {
+      if (!planned) {
+        // Say why, rather than doing nothing. The tray is deliberately dead
+        // until a plan is committed; a rule you cannot see is a bug.
+        setBlockedNote(true)
+        return
+      }
+      setHeldId((h) => (h === aimed ? null : aimed))
+      return
+    }
+
     if (nearestRef.current === 'xray' && called && arrival >= 1) {
       // Gated on `planned` like every other instrument — the comment above
       // always claimed it was, and it was not. Picking the X-ray up before a
@@ -657,6 +690,7 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             enabled={planned && phase === 'deciding'}
             closetOpen={CABINET_DOOR_IDS.some((id) => openIds.has(id))}
             drawerOpen={openIds.has(INSTRUMENT_DRAWER)}
+            hoverRef={hoverInstrumentRef}
           />
         )}
 
