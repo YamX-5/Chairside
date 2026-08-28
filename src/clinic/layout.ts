@@ -684,7 +684,16 @@ export const OPENABLES: Openable[] = [
   // unlike the station it needed no Blender pass.
   {
     prop: 'closet',
-    nodes: ['closet__LeftDoor_Wood049_2K_0', 'closet__Glass001_Glass_0'],
+    // THE HANDLE IS PART OF THE LEAF. Openables only re-parents the nodes named
+    // here, so a mesh left off this list stays a child of the never-moving door
+    // group: the frame and glass swing 75 degrees and the chrome knob hangs in
+    // mid-air where the door used to be. Measured off closet.glb through three's
+    // own loader — the LeftDoor group has THREE mesh descendants, not two.
+    nodes: [
+      'closet__LeftDoor_Wood049_2K_0',
+      'closet__Glass001_Glass_0',
+      'closet__Handle002_Metal034_2K_0',
+    ],
     kind: 'door',
     hinge: 'left',
     travel: DOOR_SWING,
@@ -692,7 +701,11 @@ export const OPENABLES: Openable[] = [
   },
   {
     prop: 'closet',
-    nodes: ['closet__RightDoor_Wood049_2K_0', 'closet__Glass_Glass_0'],
+    nodes: [
+      'closet__RightDoor_Wood049_2K_0',
+      'closet__Glass_Glass_0',
+      'closet__Handle001_Metal034_2K_0',
+    ],
     kind: 'door',
     hinge: 'right',
     travel: DOOR_SWING,
