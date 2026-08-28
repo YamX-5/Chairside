@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from 'react'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { openableProgress } from './Openables'
 import { Group, Object3D, Quaternion, Vector3 } from 'three'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
@@ -15,6 +16,7 @@ import {
   CABINET_SHELF,
   DRAWER_SHELF,
   XRAY_DOCK,
+  INSTRUMENT_DRAWER,
   unitHolders,
 } from './layout'
 import { GRIP_TARGET, gripQuaternion } from './handsRig'
@@ -317,6 +319,16 @@ export function InstrumentTray({
     }
   }, [hover, enabled])
 
+  // RIDE THE DRAWER. Openables publishes each part's live progress; the contents
+  // and their tray follow the front instead of being drawn at the open position
+  // and blinking into existence with it.
+  useFrame(() => {
+    const g = drawerRide.current
+    if (!g) return
+    const a = openableProgress.get(INSTRUMENT_DRAWER) ?? 0
+    g.position.z = DRAWER_SHELF.z + DRAWER_SHELF.travel * a
+  })
+
   useFrame(() => {
     const g = heldRef.current
     if (!g || !heldNode) return
@@ -341,6 +353,8 @@ export function InstrumentTray({
   // One target per holder, spaced along the measured bar. Memoised because the
   // count only changes when instruments.ts does.
   const unitSlots = useMemo(() => unitHolders(UNIT_INSTRUMENTS.length), [])
+  /** The drawer's contents and its tray, which slide out with its front. */
+  const drawerRide = useRef<Group>(null)
   const closetX = trayLayout(CLOSET_INSTRUMENTS.length, 0.09)
   const drawerX = trayLayout(DRAWER_INSTRUMENTS.length, 0.11)
 
@@ -429,7 +443,30 @@ export function InstrumentTray({
           glass cabinet with the axe, which made the cabinet a junk drawer and
           the axe just the ninth thing in a row. Now the cabinet holds one
           absurd decision and the drawer holds the real instruments. */}
-      <group position={[DRAWER_SHELF.x, DRAWER_SHELF.y, DRAWER_SHELF.z]}>
+      <group ref={drawerRide} position={[DRAWER_SHELF.x, DRAWER_SHELF.y, DRAWER_SHELF.z]}>
+        {/* THE DRAWER THE MODEL DOES NOT HAVE. Its front is a 17 mm panel with
+            nothing behind it, so the instruments hung in mid-air behind a
+            sliding board. Four thin slabs — floor, back, two sides — read as a
+            tray without pretending to be joinery. Drawn only while open, like
+            its contents. */}
+        {drawerOpen && (
+          <group position={[0, -DRAWER_SHELF.box.height / 2, 0]}>
+            <mesh position={[0, -DRAWER_SHELF.box.height / 2, 0]}>
+              <boxGeometry args={[DRAWER_SHELF.box.width, DRAWER_SHELF.box.wall, DRAWER_SHELF.box.depth]} />
+              <meshLambertMaterial color={0xb9bec4} />
+            </mesh>
+            <mesh position={[0, 0, -DRAWER_SHELF.box.depth / 2]}>
+              <boxGeometry args={[DRAWER_SHELF.box.width, DRAWER_SHELF.box.height, DRAWER_SHELF.box.wall]} />
+              <meshLambertMaterial color={0xb9bec4} />
+            </mesh>
+            {[-1, 1].map((s) => (
+              <mesh key={s} position={[(s * DRAWER_SHELF.box.width) / 2, 0, 0]}>
+                <boxGeometry args={[DRAWER_SHELF.box.wall, DRAWER_SHELF.box.height, DRAWER_SHELF.box.depth]} />
+                <meshLambertMaterial color={0xb9bec4} />
+              </mesh>
+            ))}
+          </group>
+        )}
         {drawerOpen && (
           <group>
             {DRAWER_INSTRUMENTS.map((inst, i) => (

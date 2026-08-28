@@ -42,6 +42,19 @@ import { DURATIONS, advance, leap, slip } from './motion'
  * loaded glTF. `ClinicProps` clones per prop, which is what makes that safe.
  */
 
+/**
+ * How far each openable currently is along its travel, 0 shut to 1 open.
+ *
+ * Mutable and module-level for the reason input.ts and stoolPose are: it changes
+ * every frame while something is moving, and React state at that rate re-renders
+ * the whole scene.
+ *
+ * It exists so a drawer's CONTENTS can ride the drawer. They used to be drawn at
+ * the fully-open position and simply appear the moment it was opened — "it's not
+ * even accurate, it's just popping up". Now they slide out with the front.
+ */
+export const openableProgress = new Map<string, number>()
+
 const UP = new Vector3(0, 1, 0)
 const _swing = new Quaternion()
 
@@ -200,6 +213,7 @@ export function Openables({
   useFrame((_, dt) => {
     if (!rigs.current.length) return
 
+
     for (const rig of rigs.current) {
       const open = openIds.has(rig.id)
       // Progress advances in real time, so a 120 Hz phone and a 30 Hz one take
@@ -215,6 +229,14 @@ export function Openables({
       // slam. `1 - slip(1 - t)` puts the speed at the start and the settle at
       // the end, which is what closing a drawer actually feels like.
       const a = open ? leap(rig.t) : 1 - slip(1 - rig.t)
+
+      // Publish how far along it is, so anything RIDING this part can follow.
+      //
+      // Module-level and mutable, the same trade input.ts and stoolPose make:
+      // this changes every frame while a drawer moves, and routing it through
+      // React state would re-render the scene at 60 Hz. Written for every
+      // openable, not just drawers, so a door's contents could ride it too.
+      openableProgress.set(rig.id, a)
 
       if (rig.spec.kind === 'drawer') {
         rig.pivot.position.copy(rig.rest).addScaledVector(rig.slide, rig.spec.travel * a)

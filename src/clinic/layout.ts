@@ -819,10 +819,31 @@ export const DRAWER_SHELF = {
   // ended up in front of a different drawer from the contents.
   x: INSTRUMENT_DRAWER_X,
   y: 0.5,
-  z: STATION_ORIGIN_Z + 0.39 + 0.18,
+  /**
+   * The SHUT position. It used to be the open one — STATION_ORIGIN_Z + 0.39 +
+   * 0.18, i.e. most of the way through the travel — so the instruments were drawn
+   * where an open drawer would be and simply blinked into existence the moment
+   * it opened: "it's just popping up". They ride the front now, offset by the
+   * live progress Openables publishes.
+   */
+  z: STATION_ORIGIN_Z + 0.39,
   yaw: 0,
+  /** Matches the OPENABLES entry for INSTRUMENT_DRAWER. */
+  travel: 0.26,
   /** Usable run along the drawer, in metres. */
   span: 1.447 - 0.974 - 0.08,
+  /**
+   * The drawer BOX, measured off its front: Material_005-material is
+   * 0.472 x 0.111 x 0.017 — a 17 mm panel with nothing behind it. So the
+   * instruments floated in mid-air behind a sliding board, which is the rest of
+   * "there is no drawer inside".
+   *
+   * The asset has no interior to reveal and cannot grow one: the carcasses are
+   * single 752 mm-deep meshes with the drawer faces painted on, which is also
+   * why only three parts on the whole run actually open. This draws the tray the
+   * model is missing.
+   */
+  box: { width: 0.472, depth: 0.3, height: 0.085, wall: 0.012 },
 }
 
 /**
