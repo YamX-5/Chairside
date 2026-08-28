@@ -11,10 +11,22 @@ import { boneSide, parseFingerBone } from './fingerBones'
  */
 
 /**
- * Adult hand length, wrist to the tip of the middle finger. 50th-percentile male
- * is 189 mm and female 172 mm; 185 mm reads as an adult without being either.
+ * How long the hand is on screen, wrist to fingertip.
+ *
+ * DELIBERATELY UNDER LIFE SIZE. A 50th-percentile adult hand is 172-189 mm, and
+ * this was 145 mm. In a first-person view held close to the camera an anatomical
+ * hand reads as enormous — it fills the lower third of the frame and everything
+ * it holds looks like a toy. The reference for this game's hands is the low-poly
+ * stylised kind: small, slim, unmistakably a cartoon hand rather than a
+ * shrunken real one.
+ *
+ * SIZE IS ONLY HALF OF IT. Scaling a chunky hand down gives a small chunky hand
+ * — a child's fist. The slimness is a PROPORTION and lives in the mesh, done in
+ * Blender by scripts/bl_hands_slim.py: thickness 65.3 -> 48.3 mm, width
+ * 135.9 -> 122.3 mm, length untouched because this constant owns length and two
+ * things scaling it is how numbers end up disagreeing.
  */
-export const HAND_LENGTH = 0.145
+export const HAND_LENGTH = 0.125
 
 /**
  * How far each joint of a finger closes when you grip, as a fraction of a full
