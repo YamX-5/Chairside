@@ -472,6 +472,24 @@ export interface Interactable {
   x: number
   z: number
   radius: number
+  /**
+   * The OBJECT this zone is about, when that is not the standing spot.
+   *
+   * RANGE is measured to the standing spot; FACING is measured to this. They are
+   * different questions, and conflating them killed every zone in the room at
+   * the exact place players end up.
+   *
+   * `x`/`z` above are where you STAND — deliberately in front of the thing, not
+   * inside its collider. So facing was being tested against a point the player
+   * walks THROUGH: step forward until the collider stops you and you are past
+   * it, the vector to it now points behind you, `facing` computes to about -1,
+   * and the zone is skipped. Measured with the real function before the fix: the
+   * X-ray zone answered only for z 1.67..2.27 while the bookcase collider stops
+   * you at 2.371. Same for gloves, drawer and cabinet over their last ~130 mm.
+   *
+   * Omit it when the standing spot and the object really are the same place.
+   */
+  look?: { x: number; z: number }
 }
 
 /**
@@ -503,7 +521,14 @@ export const INTERACTABLES: Interactable[] = [
   // In front of the station's LEFT drawer bank. It was at x 1.75, which is now
   // inside the EtO cart's footprint — an interactable you cannot stand at is an
   // interactable that does not exist.
-  { id: 'drawer', x: -1.3, z: STATION.maxZ + 0.45, radius: 0.8 },
+  {
+    id: 'drawer',
+    x: -1.3,
+    z: STATION.maxZ + 0.45,
+    radius: 0.8,
+    // The drawer front itself, 0.45 m behind where you stand.
+    look: { x: -1.3, z: STATION.maxZ },
+  },
   // The portable X-ray, on top of the bookcase. Replaces the 'board' zone that
   // used to be here: that one had no branch in interact() — a prompt that could
   // never do anything — and its 0.85 m radius covered every spot you could stand
@@ -511,19 +536,40 @@ export const INTERACTABLES: Interactable[] = [
   //
   // The cork board itself stays as scenery. Not everything on a wall needs to be
   // a verb.
-  { id: 'xray', x: BOOKCASE_POS[0], z: BOOKCASE_POS[2] - 0.269 / 2 - 0.42, radius: 0.6 },
+  {
+    id: 'xray',
+    x: BOOKCASE_POS[0],
+    z: BOOKCASE_POS[2] - 0.269 / 2 - 0.42,
+    radius: 0.6,
+    // The bookcase the device stands on.
+    look: { x: BOOKCASE_POS[0], z: BOOKCASE_POS[2] },
+  },
   // The glove box, on the sterilising run — where you actually glove up.
   // Clear of the station collider (maxZ -1.47) by more than PLAYER_RADIUS.
   // x moved off 0.35: the station has a built-in wall shelf assembly there, and
   // it left only a 124 mm window of clear splashback for a 250 mm dispenser. The
   // run between the two shelf assemblies (-0.325 to 0.128) is clear top to
   // bottom, which is the only place on the counter a box this size can hang.
-  { id: 'gloves', x: -0.1, z: STATION.maxZ + 0.45, radius: 0.5 },
+  {
+    id: 'gloves',
+    x: -0.1,
+    z: STATION.maxZ + 0.45,
+    radius: 0.5,
+    // The dispenser on the splashback behind the worktop.
+    look: { x: -0.1, z: STATION.maxZ },
+  },
   // The glass cabinet. It had NO zone at all, so clicking its doors was the only
   // way in and the phone's interact button — which can only fire one hard-coded
   // openable — could never reach it. Standing spot, not the cabinet's own
   // position: the collider starts at x 2.382 and PLAYER_RADIUS is 0.32.
-  { id: 'cabinet', x: 2.0, z: CABINET_POS[2], radius: 0.7 },
+  {
+    id: 'cabinet',
+    x: 2.0,
+    z: CABINET_POS[2],
+    radius: 0.7,
+    // The cabinet itself, against the +X wall.
+    look: { x: CABINET_POS[0], z: CABINET_POS[2] },
+  },
 ]
 
 /**
@@ -1171,8 +1217,13 @@ export function nearestInteractable(x: number, z: number, yaw?: number): Interac
     const d = Math.hypot(dx, dz)
     if (d >= it.radius) continue
 
-    if (yaw !== undefined && d > 1e-3) {
-      const facing = (dx / d) * fx + (dz / d) * fz
+    // RANGE to the standing spot; FACING to the object. See Interactable.look.
+    const lx = (it.look?.x ?? it.x) - x
+    const lz = (it.look?.z ?? it.z) - z
+    const ld = Math.hypot(lx, lz)
+
+    if (yaw !== undefined && ld > 1e-3) {
+      const facing = (lx / ld) * fx + (lz / ld) * fz
       // A BIAS IS NOT ENOUGH ON ITS OWN. Reordering candidates by heading still
       // offers you the only thing in range no matter which way you look, so
       // walking past the glove box with your back to it prompted "put gloves
@@ -1181,9 +1232,9 @@ export function nearestInteractable(x: number, z: number, yaw?: number): Interac
     }
 
     const score =
-      yaw === undefined || d <= 1e-3
+      yaw === undefined || ld <= 1e-3
         ? d
-        : d + (1 - ((dx / d) * fx + (dz / d) * fz)) * FACING_BIAS
+        : d + (1 - ((lx / ld) * fx + (lz / ld) * fz)) * FACING_BIAS
     if (score < bestScore) {
       bestScore = score
       best = it.id
