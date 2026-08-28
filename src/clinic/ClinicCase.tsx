@@ -885,9 +885,20 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
           the same verb the desktop prompt shows. Mounted here because #play is
           ClinicCase — ClinicExperience rendered these and #play never did, so
           the game has been unplayable on a phone rather than merely awkward. */}
-      {isTouch && !reading && !studying && phase === 'deciding' && (
+      {/* MOUNTED WHILE THE CHART IS OPEN TOO. This was `!reading && !studying`,
+          which unmounted the ONLY control a phone has at the exact moment the
+          player opened the chart — so the button that closes it vanished with
+          it, and the only remaining way out was Escape, which a phone does not
+          have. The game was simply stuck, permanently, on the first thing the
+          player is told to do.
+          Desktop never saw it: ClinicCase binds Escape to setReading(false). */}
+      {isTouch && !studying && phase === 'deciding' && (
         <TouchControls
-          promptLabel={activePrompt ? c(activePrompt) : null}
+          // While reading, the proximity prompt is meaningless — you are not
+          // standing at anything, you are looking at a chart. Only the chart
+          // button shows.
+          promptLabel={reading ? null : activePrompt ? c(activePrompt) : null}
+          hideStick={reading}
           onInteract={() => interact()}
           // THE PHONE'S ONLY ROUTE TO THE CHART, and therefore to a committed
           // plan, and therefore to picking up any instrument at all. Null in

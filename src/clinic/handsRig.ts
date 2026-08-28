@@ -20,11 +20,16 @@ import { boneSide, parseFingerBone } from './fingerBones'
  * stylised kind: small, slim, unmistakably a cartoon hand rather than a
  * shrunken real one.
  *
- * SIZE IS ONLY HALF OF IT. Scaling a chunky hand down gives a small chunky hand
- * — a child's fist. The slimness is a PROPORTION and lives in the mesh, done in
- * Blender by scripts/bl_hands_slim.py: thickness 65.3 -> 48.3 mm, width
- * 135.9 -> 122.3 mm, length untouched because this constant owns length and two
- * things scaling it is how numbers end up disagreeing.
+ * THE MESH THINNING IS REVERTED. I squashed the geometry to 74% thickness on the
+ * reasoning that "smaller and thinner" needed both a scale and a proportion
+ * change. It made them worse — long spindly fingers on a flattened palm, which
+ * Yaman called "slime like". The reference he gave (the hands in How To Fish) is
+ * not thin at all: it is CHUNKY and simple, short blunt fingers, few polygons.
+ * Slim was my reading of the word, and it was the wrong one.
+ *
+ * So the mesh is back to its authored proportions and only the SIZE changed.
+ * scripts/bl_hands_slim.py is kept because it works and is measured, but nothing
+ * calls it — if a genuinely slimmer hand is ever wanted, it is one command.
  */
 export const HAND_LENGTH = 0.125
 

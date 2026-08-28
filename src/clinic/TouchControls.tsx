@@ -33,6 +33,14 @@ interface Props {
   chartOpen: boolean
   /** Bilingual label for the chart button, chosen by the caller. */
   chartLabel: string
+  /**
+   * Hide the movement stick.
+   *
+   * Set while an overlay owns the screen: you cannot walk with the chart up, so
+   * a live-looking stick is a lie, and it sits under the same thumb that has to
+   * reach the close button.
+   */
+  hideStick?: boolean
 }
 
 /**
@@ -51,6 +59,7 @@ export function TouchControls({
   onChart,
   chartOpen,
   chartLabel,
+  hideStick = false,
 }: Props) {
   const stickBase = useRef<HTMLDivElement>(null)
   const stickKnob = useRef<HTMLDivElement>(null)
@@ -197,7 +206,11 @@ export function TouchControls({
 
   return (
     <>
-      <div ref={stickBase} className="stick-base">
+      <div
+        ref={stickBase}
+        className="stick-base"
+        style={hideStick ? { display: 'none' } : undefined}
+      >
         <div ref={stickKnob} className="stick-knob" />
       </div>
       {promptLabel && (
