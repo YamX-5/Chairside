@@ -1,20 +1,34 @@
 import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { AnimationMixer, Group, Object3D, Vector3, type AnimationAction } from 'three'
+import {
+  AnimationMixer,
+  Group,
+  LoopOnce,
+  Object3D,
+  Vector3,
+  type AnimationAction,
+} from 'three'
 import { SkeletonUtils } from 'three-stdlib'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
 import { findParts, type RigParts } from './patientBones'
 import { CHAIR_FACING, DOORWAY, DOORWAY_ENTRY_Z, SEAT_WORLD } from './layout'
+import { CLIPS, DEFAULT_PATIENT_ID, castScale, lookFor } from './cast3d'
 import type { ReactionPose } from './reaction'
 
 /**
- * The patient: a Mixamo-skinned character, animated by clip AND by code.
+ * The patient: a CC0 Quaternius character, animated by clip AND by code.
  *
- * The model (scripts/build_patient.py + stylise_patient.py) is a 65-bone Mixamo
- * skeleton carrying five clips — Idle, Walking, StandToSit, SittingIdle,
- * SitToStand — decimated to ~7k triangles, flat-shaded, coloured per bone and
- * with ambient occlusion baked into COLOR_0.
+ * The model is one of eight outfits over a shared 42-bone skeleton, carrying
+ * four clips — Idle, Walk, Sitting, Standing. See cast3d.ts for which patient
+ * wears which, how tall each stands, and what the clips actually contain.
+ *
+ * IT REPLACED A MIXAMO CHARACTER, for two reasons. The look: a realistically
+ * proportioned human decimated to 7k triangles reads as a damaged human, not a
+ * stylised one, and the rest of this room is deliberately cartoon. And the
+ * licence: Mixamo's terms run through an Adobe account, where CC0 is public
+ * domain outright — no attribution, no share-alike, nothing to resolve before
+ * release.
  *
  * TWO LAYERS, AND THE ORDER BETWEEN THEM IS THE WHOLE TRICK
  * ---------------------------------------------------------
@@ -45,6 +59,14 @@ export interface PatientRigProps {
   mood?: 'calm' | 'anxious' | 'in-pain'
   /** Rendered when the model is missing, so the scene never has a hole in it. */
   fallback?: ReactNode
+  /**
+   * Which patient is in the chair — chooses the body, the outfit and the height.
+   *
+   * An id rather than a filename, so the clinic never has to know what a
+   * Quaternius file is called and cast3d.ts stays the only place that mapping
+   * lives.
+   */
+  patientId?: string
   /**
    * 0 = at the doorway, 1 = settled in the chair. Anything between walks her in.
    *
@@ -92,8 +114,11 @@ export function PatientRig({
   mood = 'anxious',
   fallback = null,
   arrival = 1,
+  patientId = DEFAULT_PATIENT_ID,
 }: PatientRigProps) {
-  const gltf = useOptionalGLTF(`${BASE}models/patient.glb`)
+  const look = lookFor(patientId)
+  const gltf = useOptionalGLTF(`${BASE}models/cast/${look.model}.glb`)
+  const scale = castScale(look)
 
   // SkeletonUtils.clone, NOT Object3D.clone.
   //
@@ -136,7 +161,21 @@ export function PatientRig({
     mixer.current = m
     actions.current = {}
     for (const clip of gltf.animations ?? []) {
-      actions.current[clip.name] = m.clipAction(clip)
+      const action = m.clipAction(clip)
+      if (clip.name === CLIPS.sit || clip.name === CLIPS.stand) {
+        // SIT AND STAND ARE TRANSITIONS, NOT LOOPS — measured, not assumed; see
+        // the table in cast3d.ts. Left on the default LoopRepeat, Sitting would
+        // stand her back up and drop her into the chair again every 8.4 seconds,
+        // forever, while the student is working in her mouth.
+        //
+        // clampWhenFinished holds the last frame, which for Sitting is the
+        // seated pose. The pack ships no seated idle at all, so that held pose IS
+        // the seated idle — and the breathing and head life below are added on
+        // top of it, which is the whole reason this rig has two layers.
+        action.setLoop(LoopOnce, 1)
+        action.clampWhenFinished = true
+      }
+      actions.current[clip.name] = action
     }
     current.current = ''
 
@@ -155,7 +194,9 @@ export function PatientRig({
     const a = arrivalRef.current
 
     // --- 1. pick the clip -------------------------------------------------
-    const want = a >= 1 ? 'SittingIdle' : a >= SIT_STARTS_AT ? 'StandToSit' : 'Walking'
+    // Two clips, not three: Sitting already ends in the seated pose and holds
+    // it, so there is nothing for a separate seated-idle clip to do.
+    const want = a >= SIT_STARTS_AT ? CLIPS.sit : CLIPS.walk
     if (m && current.current !== want && actions.current[want]) {
       const next = actions.current[want]
       const prev = current.current ? actions.current[current.current] : null
@@ -286,7 +327,16 @@ export function PatientRig({
     <group position={SEAT} rotation={[0, FACING, 0]}>
       <group ref={walkIn}>
         <group ref={group}>
-          <primitive object={scene} />
+          {/* SCALE INNERMOST, deliberately.
+              Quaternius authored these at ~4.6 glTF units, not metres, so
+              unscaled she stands three times the height of the room. The
+              walk-in group above translates in real metres — the doorway, the
+              cushion height — so putting the scale outside it would multiply
+              those distances by 0.37 and she would walk in from inside the
+              dental chair. */}
+          <group scale={scale}>
+            <primitive object={scene} />
+          </group>
         </group>
       </group>
     </group>

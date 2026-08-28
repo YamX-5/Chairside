@@ -574,6 +574,10 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             triggerId={trigger}
             fxRef={fxRef}
             arrival={arrival}
+            // The clinic runs one hardcoded case today — the same Mr Haddad the
+            // chart is written for, three lines below. When the case becomes
+            // data-driven this is the one line that changes.
+            patientId="patient-8"
             mood={phase === 'deciding' ? 'in-pain' : 'anxious'}
           />
         )}

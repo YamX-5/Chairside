@@ -33,6 +33,8 @@ export interface ReactingPatientProps extends PatientProps {
   onDone?: () => void
   /** 0 = at the doorway, 1 = settled in the chair. Passed through to the rig. */
   arrival?: number
+  /** Which patient is in the chair — chooses body, outfit and height. */
+  patientId?: string
 }
 
 export function ReactingPatient({
@@ -41,6 +43,7 @@ export function ReactingPatient({
   fxRef,
   onDone,
   arrival = 1,
+  patientId,
   ...patient
 }: ReactingPatientProps) {
   // The wrapper sits at the ORIGIN and applies only the reaction offset.
@@ -140,6 +143,7 @@ export function ReactingPatient({
         poseRef={livePose}
         mood={patient.mood}
         arrival={arrival}
+        patientId={patientId}
         fallback={<Patient {...patient} />}
       />
     </group>

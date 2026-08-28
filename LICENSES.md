@@ -8,7 +8,8 @@ Anything not listed here is authored in `scripts/` and owned by the project.
 | Asset | Source | Licence | Attribution required | Status |
 |---|---|---|---|---|
 | `BarberShopChair_01` | Poly Haven | CC0 1.0 | No | evaluation only — not shipped |
-| Mixamo "Beta" character + Idle / Walking / StandToSit / SittingIdle / SitToStand | Mixamo (Adobe) | Mixamo licence — royalty-free for commercial use with an Adobe account | No | **SHIPPED** as `public/models/patient.glb` |
+| [Quaternius "Animated Men Characters"](https://quaternius.com/) + "Animated Women Characters" (Feb 2019) | Quaternius, via Google Drive | **CC0 1.0 Universal** — public domain dedication | No | **SHIPPED** as the seven files in `public/models/cast/`, converted by `scripts/fbx_to_glb.py` |
+| Mixamo "Beta" character + Idle / Walking / StandToSit / SittingIdle / SitToStand | Mixamo (Adobe) | Mixamo licence — royalty-free for commercial use with an Adobe account | No | superseded by the Quaternius cast; `public/models/patient.glb` is no longer loaded |
 | ["Hand Low-Poly Stylized VR (Rigged)"](https://sketchfab.com/3d-models/hand-low-poly-stylized-vr-rigged-b6983bea654f4a8c80630a75f78874fe) by OKacin Creative (@OKacin) | Sketchfab | CC BY 4.0 | **Yes — must credit "OKacin Creative"** | **SHIPPED** as `public/models/hands.glb`, recoloured to nitrile blue with an authored cuff by `scripts/bl_hands_glove.py` |
 
 ### Rejected, and why — so they are not re-evaluated
@@ -20,6 +21,7 @@ Anything not listed here is authored in `scripts/` and owned by the project.
 | "FREE [FPS Arms] GameReady" (296d30fc) | Tactical fingerless gloves modelled in. Wrong for a clinic. |
 | Every "surgical glove" on Sketchfab | Static props with no armature. There is no rigged medical glove; ours is authored. |
 | Anything CC BY-NC or BY-SA | NonCommercial and ShareAlike both bite at commercial release. |
+| `female_tanktop.glb` from the Quaternius women's pack | Converted and then dropped rather than shipped unused. A tank top is also the least likely garment in a Jordanian clinic waiting room. Re-convert from `assets-src/quaternius` if a ninth patient ever needs it. |
 
 ## Authored in-repo
 
