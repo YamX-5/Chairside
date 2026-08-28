@@ -594,7 +594,16 @@ export default function ClinicCase({ onExit, radiograph }: ClinicCaseProps = {})
             patientName="Mr Haddad"
             waiting={(day === 'clinic' || day === 'done') && !called}
             arriving={called && arrival < 1}
-          onCall={() => {}}
+            // THE IN-WORLD MONITOR MUST CALL THE PATIENT TOO.
+            //
+            // This was `() => {}`. The 3D screen renders the same CALL THE
+            // PATIENT button as the overlay, `boxed` so it looks live and
+            // highlights on hover — and clicking it did nothing at all. Since
+            // `called` is what mounts InstrumentTray, that single no-op meant a
+            // player who walked to the desk and used the screen in the room
+            // never got a tray, a drawer, a cabinet shelf, a handpiece or an
+            // X-ray. There was no geometry in the room to pick up.
+            onCall={callPatient}
           />
         </Suspense>
 
