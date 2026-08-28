@@ -751,6 +751,27 @@ export const BRACKET_TRAY = {
 }
 
 /**
+ * The unit's OWN handpieces, hanging on the delivery bar.
+ *
+ * They are modelled into dental_chair.glb as `Object_15` and were only ever
+ * scenery, while the code laid a SECOND handpiece on the bracket tray beside
+ * them. That is the "there are handpieces above the handpieces" report: two sets
+ * of the same tool, one of them fake.
+ *
+ * Measured with scripts/bl_unit_probe.py in game axes, then offset by CHAIR_POS:
+ * the bar spans world x 0.093..1.195, y 0.671..0.849, z 0.480..0.653. Taking one
+ * from here is what "the handpieces in the unit should actually work" means —
+ * the bar is the dock, the same way the bookcase is the X-ray's.
+ */
+export const UNIT_HANDPIECE = {
+  x: CHAIR_POS[0] + (-0.607 + 0.495) / 2,
+  y: (0.671 + 0.849) / 2,
+  z: CHAIR_POS[2] + (0.330 + 0.503) / 2,
+  /** How big a click target the bar gets, in metres. */
+  size: [0.495 - -0.607, 0.849 - 0.671, 0.503 - 0.330] as [number, number, number],
+}
+
+/**
  * The shelf inside the glass cabinet that the cabinet instruments sit on.
  *
  * MEASURED off closet.glb: interior shelves at y 0.490, 0.965 and 1.441, each
@@ -829,7 +850,15 @@ export const PROPS: Prop[] = [
   // half its real height, and on a surface it was never designed to sit on. At
   // its true 1.30 m it does not fit under the wall cabinets at all (they leave
   // 0.30 m), which is the geometry telling you it belongs on the floor.
-  { id: 'eto_sterilizer', pos: ETO_POS, yaw: 0, fills: true },
+  // YAW PI, not 0: its front faced the wall.
+  //
+  // Established by rendering it from all four sides with
+  // scripts/bl_prop_orbit.py — the door, handle and pressure gauge are all on
+  // the model's +X face, and it stands at x 2.52 against the +X wall. So at
+  // yaw 0 the only side you could use was pressed into the plaster and the
+  // room saw its blank back. A square footprint hides this from every
+  // measurement; only looking at it settles which way is forward.
+  { id: 'eto_sterilizer', pos: ETO_POS, yaw: Math.PI, fills: true },
 
   // --- left wall: the admin corner --------------------------------------------
   // The desk sits under LAPTOP (-2.02, 0.8, 0.3) so the laptop lands ON it.

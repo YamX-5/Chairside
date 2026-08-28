@@ -3,7 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Group, Object3D, Quaternion, Vector3 } from 'three'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
-import { BRACKET_TRAY, CABINET_SHELF, DRAWER_SHELF, XRAY_DOCK } from './layout'
+import { BRACKET_TRAY, CABINET_SHELF, DRAWER_SHELF, UNIT_HANDPIECE, XRAY_DOCK } from './layout'
 import { GRIP_TARGET, gripQuaternion } from './handsRig'
 import {
   CLOSET_INSTRUMENTS,
@@ -11,6 +11,7 @@ import {
   INSTRUMENTS,
   SHELF_INSTRUMENTS,
   TRAY_INSTRUMENTS,
+  UNIT_INSTRUMENTS,
   trayLayout,
   type InstrumentId,
 } from './instruments'
@@ -347,6 +348,36 @@ export function InstrumentTray({
           </group>
         )}
       </group>
+
+      {/* ------------------------------------ the unit's own handpieces ---
+          The delivery bar IS the dock. The handpieces hanging on it are real
+          geometry in dental_chair.glb, so nothing is drawn here — only an
+          invisible box over them that takes one when clicked. Drawing our own
+          would put a second handpiece beside the modelled ones, which is what
+          the tray used to do. */}
+      {UNIT_INSTRUMENTS.map((inst) => (
+        <mesh
+          key={inst.id}
+          position={[UNIT_HANDPIECE.x, UNIT_HANDPIECE.y, UNIT_HANDPIECE.z]}
+          visible={false}
+          onClick={(e: ThreeEvent<MouseEvent>) => {
+            if (!enabled) {
+              e.stopPropagation()
+              onBlocked(inst.id)
+              return
+            }
+            e.stopPropagation()
+            onPick(inst.id)
+          }}
+          onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+            e.stopPropagation()
+            setHover(inst.id)
+          }}
+          onPointerOut={() => setHover(null)}
+        >
+          <boxGeometry args={UNIT_HANDPIECE.size} />
+        </mesh>
+      ))}
 
       {/* -------------------------------------------- the wall shelf ------ */}
       {/* The X-ray sits out in the open on its cradle, across the room. No

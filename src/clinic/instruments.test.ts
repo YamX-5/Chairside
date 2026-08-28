@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {
   CLOSET_INSTRUMENTS,
   DRAWER_INSTRUMENTS,
+  UNIT_INSTRUMENTS,
   SHELF_INSTRUMENTS,
   type Instrument,
   type Storage,
@@ -63,6 +64,7 @@ import type { CommitTriad } from '../ingest/channels'
     tray: TRAY_INSTRUMENTS,
     closet: CLOSET_INSTRUMENTS,
     drawer: DRAWER_INSTRUMENTS,
+    unit: UNIT_INSTRUMENTS,
     shelf: SHELF_INSTRUMENTS,
   }
   for (const i of INSTRUMENTS) {

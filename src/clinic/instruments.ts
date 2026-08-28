@@ -39,6 +39,15 @@ export type Storage =
    */
   | 'drawer'
   /**
+   * Hanging on the dental unit's own delivery bar, where it is modelled.
+   *
+   * The unit ships its handpieces as real geometry (Object_15) and the code used
+   * to lay ANOTHER handpiece on the bracket tray beside them — two of the same
+   * tool, one of them fake. That is the "there are handpieces above the
+   * handpieces" report. Taking it off the unit is the real thing.
+   */
+  | 'unit'
+  /**
    * Standing on the wall shelf by the door, on its charging cradle.
    *
    * A portable X-ray is not tray kit and it is not locked away -- it sits out
@@ -93,7 +102,7 @@ export const INSTRUMENTS: Instrument[] = [
   { id: 'probe', node: 'Probe', label: 'Explorer', use: 'Feel for cavitation and soft dentine', storage: 'tray' },
   { id: 'suction', node: 'Suction', label: 'Suction', use: 'Keep the field dry and visible', storage: 'tray' },
   { id: 'syringe', node: 'Syringe', label: 'Anaesthetic syringe', use: 'Numb the tooth before you touch it', storage: 'tray' },
-  { id: 'handpiece', node: 'Handpiece', label: 'Slow handpiece', use: 'Remove caries, prepare the tooth', storage: 'tray' },
+  { id: 'handpiece', node: 'Handpiece', label: 'Slow handpiece', use: 'Remove caries, prepare the tooth', storage: 'unit' },
 
   // Fetched from the cabinet when the plan calls for them.
   { id: 'perioProbe', node: 'PerioProbe', label: 'Periodontal probe', use: 'Measure pocket depths', storage: 'drawer' },
@@ -118,6 +127,7 @@ export const INSTRUMENT_BY_ID = new Map(INSTRUMENTS.map((i) => [i.id, i]))
 export const TRAY_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'tray')
 export const CLOSET_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'closet')
 export const DRAWER_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'drawer')
+export const UNIT_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'unit')
 export const SHELF_INSTRUMENTS = INSTRUMENTS.filter((i) => i.storage === 'shelf')
 
 /**
