@@ -162,6 +162,31 @@ cyl("Bur", h, (0, -0.152, 0.031), 0.0016, 0.022, BUR, rot=(1.2, 0, 0))
 # Hose, so it reads as plugged into the unit rather than a wand.
 cyl("HandpieceHose", h, (0, 0.06, -0.004), 0.006, 0.13, HANDLE, rot=(1.62, 0, 0))
 
+# --- high-speed handpiece (the turbine) --------------------------------------
+# Distinguished from the slow one the way the real pair are, so the player can
+# tell them apart in the hand and on the bar: a SLIMMER body, a head set at a
+# sharper angle to the shank, and a longer, finer bur. Shipping it as a copy of
+# the slow handpiece would mean three identical tools on the delivery bar, which
+# is worse than having only one.
+hs = root("HighSpeed")
+cyl("HighSpeedGrip", hs, (0, -0.042, 0), 0.0095, 0.095, STEEL, rot=LIE)
+cyl("HighSpeedKnurl", hs, (0, -0.012, 0), 0.0102, 0.020, STEEL_DARK, n=12, rot=LIE)
+cyl("HighSpeedBody", hs, (0, -0.108, 0.006), 0.0115, 0.050, STEEL, rot=(1.25, 0, 0))
+cyl("HighSpeedHead", hs, (0, -0.136, 0.026), 0.0098, 0.018, STEEL_DARK, n=10, rot=(1.0, 0, 0))
+cyl("HighSpeedBur", hs, (0, -0.142, 0.044), 0.0012, 0.026, BUR, rot=(1.0, 0, 0))
+cyl("HighSpeedHose", hs, (0, 0.06, -0.004), 0.006, 0.13, HANDLE, rot=(1.62, 0, 0))
+
+# --- air-water syringe (the "little one") ------------------------------------
+# The 3-in-1. Straight, no head, no bur — a slim barrel with two buttons and a
+# thin bent nozzle. It should not read as a drill at all.
+tx = root("Triplex")
+cyl("TriplexBarrel", tx, (0, -0.040, 0), 0.0088, 0.090, STEEL, rot=LIE)
+box("TriplexButtonA", tx, (-0.005, 0.006, 0.008), (0.007, 0.014, 0.005), STEEL_DARK)
+box("TriplexButtonB", tx, (0.005, 0.006, 0.008), (0.007, 0.014, 0.005), STEEL_DARK)
+cyl("TriplexNeck", tx, (0, -0.098, 0.002), 0.0032, 0.030, STEEL_DARK, rot=(1.45, 0, 0))
+cyl("TriplexTip", tx, (0, -0.116, 0.018), 0.0022, 0.026, STEEL, rot=(1.05, 0, 0))
+cyl("TriplexHose", tx, (0, 0.06, -0.004), 0.006, 0.13, HANDLE, rot=(1.62, 0, 0))
+
 # --- syringe (local anaesthetic) --------------------------------------------
 s = root("Syringe")
 cyl("SyringeBarrel", s, (0, -0.055, 0), 0.011, 0.10, SYRINGE_BODY, rot=LIE)

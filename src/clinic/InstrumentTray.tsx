@@ -3,7 +3,13 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Group, Object3D, Quaternion, Vector3 } from 'three'
 import { useOptionalGLTF } from './useOptionalGLTF'
 import { applyBakedLighting } from './bakedMaterial'
-import { BRACKET_TRAY, CABINET_SHELF, DRAWER_SHELF, UNIT_HANDPIECE, XRAY_DOCK } from './layout'
+import {
+  BRACKET_TRAY,
+  CABINET_SHELF,
+  DRAWER_SHELF,
+  XRAY_DOCK,
+  unitHolders,
+} from './layout'
 import { GRIP_TARGET, gripQuaternion } from './handsRig'
 import {
   CLOSET_INSTRUMENTS,
@@ -289,6 +295,9 @@ export function InstrumentTray({
 
 
   const trayX = trayLayout(TRAY_INSTRUMENTS.length)
+  // One target per holder, spaced along the measured bar. Memoised because the
+  // count only changes when instruments.ts does.
+  const unitSlots = useMemo(() => unitHolders(UNIT_INSTRUMENTS.length), [])
   const closetX = trayLayout(CLOSET_INSTRUMENTS.length, 0.09)
   const drawerX = trayLayout(DRAWER_INSTRUMENTS.length, 0.11)
 
@@ -382,10 +391,10 @@ export function InstrumentTray({
           invisible box over them that takes one when clicked. Drawing our own
           would put a second handpiece beside the modelled ones, which is what
           the tray used to do. */}
-      {UNIT_INSTRUMENTS.map((inst) => (
+      {UNIT_INSTRUMENTS.map((inst, i) => (
         <mesh
           key={inst.id}
-          position={[UNIT_HANDPIECE.x, UNIT_HANDPIECE.y, UNIT_HANDPIECE.z]}
+          position={[unitSlots[i].x, unitSlots[i].y, unitSlots[i].z]}
           visible={false}
           onClick={(e: ThreeEvent<MouseEvent>) => {
             if (!enabled) {
@@ -402,7 +411,7 @@ export function InstrumentTray({
           }}
           onPointerOut={() => setHover(null)}
         >
-          <boxGeometry args={UNIT_HANDPIECE.size} />
+          <boxGeometry args={unitSlots[i].size} />
         </mesh>
       ))}
 

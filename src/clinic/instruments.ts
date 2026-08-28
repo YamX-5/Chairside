@@ -21,6 +21,8 @@ export type InstrumentId =
   | 'suction'
   | 'axe'
   | 'xray'
+  | 'highSpeed'
+  | 'triplex'
 
 /** Where an instrument lives when the room is at rest. */
 export type Storage =
@@ -102,7 +104,19 @@ export const INSTRUMENTS: Instrument[] = [
   { id: 'probe', node: 'Probe', label: 'Explorer', use: 'Feel for cavitation and soft dentine', storage: 'tray' },
   { id: 'suction', node: 'Suction', label: 'Suction', use: 'Keep the field dry and visible', storage: 'tray' },
   { id: 'syringe', node: 'Syringe', label: 'Anaesthetic syringe', use: 'Numb the tooth before you touch it', storage: 'tray' },
+  // THE DELIVERY BAR HOLDS MORE THAN ONE THING. It had exactly one entry, so
+  // there was one click target on the whole unit — "I cannot hold any of it,
+  // either the high speed, the low speed, or the water pump".
+  //
+  // PROCEDURE_INSTRUMENT is deliberately NOT changed. It still asks for
+  // 'handpiece', the slow one. Deciding that a given procedure wants the high
+  // speed instead is a clinical call with a real answer, and inventing one is
+  // exactly the kind of thing this project forbids — so these two are holdable
+  // and usable, and which one a procedure REQUIRES stays as it was until Yaman
+  // says otherwise.
   { id: 'handpiece', node: 'Handpiece', label: 'Slow handpiece', use: 'Remove caries, prepare the tooth', storage: 'unit' },
+  { id: 'highSpeed', node: 'HighSpeed', label: 'High-speed handpiece', use: 'Cut enamel and gain access', storage: 'unit' },
+  { id: 'triplex', node: 'Triplex', label: 'Air-water syringe', use: 'Rinse and dry the field', storage: 'unit' },
 
   // Fetched from the cabinet when the plan calls for them.
   { id: 'perioProbe', node: 'PerioProbe', label: 'Periodontal probe', use: 'Measure pocket depths', storage: 'drawer' },

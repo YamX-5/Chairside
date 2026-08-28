@@ -914,6 +914,42 @@ export const UNIT_HANDPIECE = {
 }
 
 /**
+ * ONE TARGET PER HOLDER, spaced along the delivery bar.
+ *
+ * The bar is a single 18,338-vertex mesh — dental_unit__Object_15 — so there is
+ * no node per handpiece to hang a target on. I tried: separating it by loose
+ * parts in Blender yields 4,913 islands of three or four vertices each, which is
+ * triangle soup, not tools. The geometry cannot be split into handpieces.
+ *
+ * So the targets are DIVIDED ALONG THE MEASURED BAR instead. Its extent is real
+ * — x -0.607..0.495, y 0.671..0.849, z 0.330..0.503 relative to CHAIR_POS,
+ * measured off the .glb — and the holders are evenly spaced across it.
+ *
+ * What this replaces: a SINGLE invisible 1.102 m box over the whole bar. One
+ * click target for every handpiece on the unit, over a metre wide, so it was
+ * also the nearest hit for a large arc around the chair. "I cannot actually hold
+ * any of it" — there was only ever one thing to hold, and it answered for the
+ * whole bar.
+ *
+ * The count comes from UNIT_INSTRUMENTS, so adding a fourth holder is one entry
+ * in instruments.ts and the spacing re-derives itself.
+ */
+export function unitHolders(count: number): { x: number; y: number; z: number; size: [number, number, number] }[] {
+  const minX = -0.607
+  const maxX = 0.495
+  const span = maxX - minX
+  const each = span / Math.max(1, count)
+  return Array.from({ length: count }, (_, i) => ({
+    x: CHAIR_POS[0] + minX + each * (i + 0.5),
+    y: UNIT_HANDPIECE.y,
+    z: UNIT_HANDPIECE.z,
+    // Slightly narrower than its slot so neighbouring targets cannot overlap and
+    // steal each other's clicks.
+    size: [each * 0.86, UNIT_HANDPIECE.size[1], UNIT_HANDPIECE.size[2]] as [number, number, number],
+  }))
+}
+
+/**
  * The shelf inside the glass cabinet that the cabinet instruments sit on.
  *
  * MEASURED off closet.glb: interior shelves at y 0.490, 0.965 and 1.441, each
